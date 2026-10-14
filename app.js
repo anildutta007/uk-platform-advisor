@@ -109,9 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
       lumpSums: { isa: 25000, sipp: 15000, gia: 0 },
       monthlyContrib: { isa: 250, sipp: 150, gia: 0 },
       assetAllocation: { ukSharesPct: 25, etfsPct: 35, fundsPct: 20, investmentTrustsPct: 10, usStocksPct: 10, europeanStocksPct: 0 },
-      tradesUk: 6,
-      tradesFunds: 2,
-      tradesOverseas: 4,
+      tradesUk: 1,
+      tradesFunds: 0,
+      tradesOverseas: 0,
       avgOverseasSize: 1000,
       employerContrib: false,
       pensionWithdrawal: 'accumulation',
@@ -123,9 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
       lumpSums: { isa: 20000, sipp: 60000, gia: 0 },
       monthlyContrib: { isa: 500, sipp: 1000, gia: 0 },
       assetAllocation: { ukSharesPct: 30, etfsPct: 40, fundsPct: 10, investmentTrustsPct: 10, usStocksPct: 10, europeanStocksPct: 0 },
-      tradesUk: 8,
-      tradesFunds: 2,
-      tradesOverseas: 6,
+      tradesUk: 1,
+      tradesFunds: 0,
+      tradesOverseas: 1,
       avgOverseasSize: 2000,
       employerContrib: true, // Ltd company contribution!
       pensionWithdrawal: 'accumulation',
@@ -137,9 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
       lumpSums: { isa: 20000, sipp: 0, gia: 30000 },
       monthlyContrib: { isa: 500, sipp: 0, gia: 500 },
       assetAllocation: { ukSharesPct: 25, etfsPct: 15, fundsPct: 0, investmentTrustsPct: 10, usStocksPct: 40, europeanStocksPct: 10 },
-      tradesUk: 24,
+      tradesUk: 3,
       tradesFunds: 0,
-      tradesOverseas: 30,
+      tradesOverseas: 4,
       avgOverseasSize: 1500,
       employerContrib: false,
       pensionWithdrawal: 'accumulation',
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
       monthlyContrib: { isa: 300, sipp: 200, gia: 0 },
       assetAllocation: { ukSharesPct: 0, etfsPct: 60, fundsPct: 40, investmentTrustsPct: 0, usStocksPct: 0, europeanStocksPct: 0 },
       tradesUk: 0,
-      tradesFunds: 1,
+      tradesFunds: 0,
       tradesOverseas: 0,
       avgOverseasSize: 0,
       employerContrib: false,
@@ -165,9 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
       lumpSums: { isa: 80000, sipp: 150000, gia: 50000 },
       monthlyContrib: { isa: 500, sipp: 500, gia: 500 },
       assetAllocation: { ukSharesPct: 30, etfsPct: 30, fundsPct: 20, investmentTrustsPct: 10, usStocksPct: 10, europeanStocksPct: 0 },
-      tradesUk: 12,
-      tradesFunds: 4,
-      tradesOverseas: 8,
+      tradesUk: 2,
+      tradesFunds: 1,
+      tradesOverseas: 1,
       avgOverseasSize: 3000,
       employerContrib: true,
       pensionWithdrawal: 'flexible_drawdown',
@@ -400,17 +400,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Trading frequency sliders
+  // Trading frequency sliders (Monthly Basis)
   tradesUk.addEventListener('input', () => {
-    valTradesUk.textContent = `${tradesUk.value} / yr`;
+    valTradesUk.textContent = `${tradesUk.value} / mo`;
     calculateAndRender();
   });
   tradesFunds.addEventListener('input', () => {
-    valTradesFunds.textContent = `${tradesFunds.value} / yr`;
+    valTradesFunds.textContent = `${tradesFunds.value} / mo`;
     calculateAndRender();
   });
   tradesOverseas.addEventListener('input', () => {
-    valTradesOverseas.textContent = `${tradesOverseas.value} trades`;
+    const v = Number(tradesOverseas.value);
+    valTradesOverseas.textContent = v === 1 ? '1 trade / mo' : `${v} trades / mo`;
     calculateAndRender();
   });
   tradeSizeOverseas.addEventListener('input', calculateAndRender);
@@ -478,11 +479,11 @@ document.addEventListener('DOMContentLoaded', () => {
     syncAssetCardsAndSliders();
 
     tradesUk.value = config.tradesUk;
-    valTradesUk.textContent = `${config.tradesUk} / yr`;
+    valTradesUk.textContent = `${config.tradesUk} / mo`;
     tradesFunds.value = config.tradesFunds;
-    valTradesFunds.textContent = `${config.tradesFunds} / yr`;
+    valTradesFunds.textContent = `${config.tradesFunds} / mo`;
     tradesOverseas.value = config.tradesOverseas;
-    valTradesOverseas.textContent = `${config.tradesOverseas} trades`;
+    valTradesOverseas.textContent = Number(config.tradesOverseas) === 1 ? '1 trade / mo' : `${config.tradesOverseas} trades / mo`;
     tradeSizeOverseas.value = config.avgOverseasSize;
 
     sippEmployerContrib.checked = config.employerContrib;
@@ -596,9 +597,9 @@ document.addEventListener('DOMContentLoaded', () => {
         europeanStocksPct: (chkEu && chkEu.checked) ? (Number(allocEu.value) || 0) : 0
       },
       tradingFrequency: {
-        ukShareTradesPerYear: Number(tradesUk.value) || 0,
-        fundTradesPerYear: Number(tradesFunds.value) || 0,
-        overseasTradesPerYear: Number(tradesOverseas.value) || 0,
+        ukShareTradesPerYear: (Number(tradesUk.value) || 0) * 12,
+        fundTradesPerYear: (Number(tradesFunds.value) || 0) * 12,
+        overseasTradesPerYear: (Number(tradesOverseas.value) || 0) * 12,
         avgOverseasTradeSize: Number(tradeSizeOverseas.value) || 1000
       },
       sippEmployerContrib: sippEmployerContrib.checked,
