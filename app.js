@@ -1,36 +1,39 @@
 /**
  * UK Investment Platform Advisor - Frontend Controller
+ * Implements the redesigned GUI layout matching the team's visual mockup.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize Lucide icons
-  if (window.lucide) {
+  if (window.lucide && window.lucide.createIcons) {
     window.lucide.createIcons();
   }
 
-  // State
-  let costViewMode = 'monthly'; // 'monthly' | 'annual'
+  // Cost View Mode: 'monthly' | 'annual'
+  let costViewMode = 'monthly';
 
-  // DOM Elements
+  // DOM Elements: Account Lump Sums
   const accountIsa = document.getElementById('account-isa');
   const accountSipp = document.getElementById('account-sipp');
   const accountGia = document.getElementById('account-gia');
-
   const lumpIsa = document.getElementById('lump-isa');
-  const sliderLumpIsa = document.getElementById('slider-lump-isa');
   const lumpSipp = document.getElementById('lump-sipp');
-  const sliderLumpSipp = document.getElementById('slider-lump-sipp');
   const lumpGia = document.getElementById('lump-gia');
-  const sliderLumpGia = document.getElementById('slider-lump-gia');
+  const totalLumpDisplay = document.getElementById('total-lump-display');
 
-  const totalPotDisplay = document.getElementById('total-pot-display');
-
+  // DOM Elements: Monthly Regular Investments
+  const monthlyCheckIsa = document.getElementById('monthly-check-isa');
+  const monthlyCheckSipp = document.getElementById('monthly-check-sipp');
+  const monthlyCheckGia = document.getElementById('monthly-check-gia');
   const monthlyIsa = document.getElementById('monthly-isa');
   const monthlySipp = document.getElementById('monthly-sipp');
   const monthlyGia = document.getElementById('monthly-gia');
   const totalMonthlyDisplay = document.getElementById('total-monthly-display');
 
-  // Asset Checkboxes and Cards
+  // Page Subheader Summary
+  const profileSummaryText = document.getElementById('profile-summary-text');
+
+  // Asset Checkboxes and Pills
   const chkUkShares = document.getElementById('chk-uk-shares');
   const chkEtfs = document.getElementById('chk-etfs');
   const chkFunds = document.getElementById('chk-funds');
@@ -38,13 +41,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const chkUs = document.getElementById('chk-us');
   const chkEu = document.getElementById('chk-eu');
 
-  const cardUkShares = document.getElementById('card-chk-ukShares');
-  const cardEtfs = document.getElementById('card-chk-etfs');
-  const cardFunds = document.getElementById('card-chk-funds');
-  const cardIt = document.getElementById('card-chk-investmentTrusts');
-  const cardUs = document.getElementById('card-chk-usStocks');
-  const cardEu = document.getElementById('card-chk-europeanStocks');
+  const pillUkShares = document.getElementById('pill-ukShares');
+  const pillEtfs = document.getElementById('pill-etfs');
+  const pillFunds = document.getElementById('pill-funds');
+  const pillIt = document.getElementById('pill-investmentTrusts');
+  const pillUs = document.getElementById('pill-usStocks');
+  const pillEu = document.getElementById('pill-europeanStocks');
 
+  // Sliders and Rows
   const rowUkShares = document.getElementById('slider-row-ukShares');
   const rowEtfs = document.getElementById('slider-row-etfs');
   const rowFunds = document.getElementById('slider-row-funds');
@@ -52,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const rowUs = document.getElementById('slider-row-usStocks');
   const rowEu = document.getElementById('slider-row-europeanStocks');
 
-  // Asset Allocations
   const allocUkShares = document.getElementById('alloc-uk-shares');
   const valUkShares = document.getElementById('val-uk-shares');
   const allocEtfs = document.getElementById('alloc-etfs');
@@ -65,9 +68,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const valUs = document.getElementById('val-us');
   const allocEu = document.getElementById('alloc-eu');
   const valEu = document.getElementById('val-eu');
-  const allocSumDisplay = document.getElementById('alloc-sum-display');
+  const allocSumText = document.getElementById('alloc-sum-text');
+  const presetAllocSelect = document.getElementById('preset-alloc-select');
 
-  // Trading Frequencies
+  // Accordions & Summaries
   const tradesUk = document.getElementById('trades-uk');
   const valTradesUk = document.getElementById('val-trades-uk');
   const tradesFunds = document.getElementById('trades-funds');
@@ -75,29 +79,52 @@ document.addEventListener('DOMContentLoaded', () => {
   const tradesOverseas = document.getElementById('trades-overseas');
   const valTradesOverseas = document.getElementById('val-trades-overseas');
   const tradeSizeOverseas = document.getElementById('trade-size-overseas');
+  const tradingSummaryBadge = document.getElementById('trading-summary-badge');
 
-  // SIPP options
   const sippEmployerContrib = document.getElementById('sipp-employer-contrib');
   const employerContribWarning = document.getElementById('employer-contrib-warning');
   const pensionWithdrawal = document.getElementById('pension-withdrawal');
+  const pensionSummaryBadge = document.getElementById('pension-summary-badge');
 
-  // Horizon
   const horizonYears = document.getElementById('horizon-years');
-  const valHorizon = document.getElementById('val-horizon');
   const valHorizonDisplay = document.getElementById('val-horizon-display');
   const expectedReturn = document.getElementById('expected-return');
   const valReturnDisplay = document.getElementById('val-return-display');
+  const horizonSummaryBadge = document.getElementById('horizon-summary-badge');
 
-  // Output containers
+  // Right Column Elements
+  const statusEligibleCount = document.getElementById('status-eligible-count');
+  const statusExcludedText = document.getElementById('status-excluded-text');
+  const btnViewReasonsLink = document.getElementById('btn-view-reasons-link');
+  const toggleViewMonthly = document.getElementById('toggle-view-monthly');
+  const toggleViewAnnual = document.getElementById('toggle-view-annual');
+
+  const lowestCostBanner = document.getElementById('lowest-cost-banner');
+  const bannerLowestTitle = document.getElementById('banner-lowest-title');
+  const bannerLowestDesc = document.getElementById('banner-lowest-desc');
+
   const platformCardsContainer = document.getElementById('platform-cards-container');
-  const tableBreakdownBody = document.getElementById('table-breakdown-body');
+  const excludedPlatformsBanner = document.getElementById('excluded-platforms-banner');
+  const excludedBannerTitle = document.getElementById('excluded-banner-title');
+  const excludedBannerList = document.getElementById('excluded-banner-list');
+  const btnViewReasonsCard = document.getElementById('btn-view-reasons-card');
 
-  // Tab buttons
+  // Modals
+  const modalEligibilityReasons = document.getElementById('modal-eligibility-reasons');
+  const btnCloseReasonsModal = document.getElementById('btn-close-reasons-modal');
+  const btnCloseReasonsModalBottom = document.getElementById('btn-close-reasons-modal-bottom');
+  const modalExcludedList = document.getElementById('modal-excluded-list');
+
+  const modalTradeOffs = document.getElementById('modal-trade-offs');
+  const modalTradeoffTitle = document.getElementById('modal-tradeoff-title');
+  const modalTradeoffBody = document.getElementById('modal-tradeoff-body');
+  const btnCloseTradeoffModal = document.getElementById('btn-close-tradeoff-modal');
+  const btnCloseTradeoffModalBottom = document.getElementById('btn-close-tradeoff-modal-bottom');
+
+  // Tabs & Other Containers
   const navTabs = document.querySelectorAll('.nav-tab');
   const tabContents = document.querySelectorAll('.tab-content');
-
-  // Preset buttons
-  const presetBtns = document.querySelectorAll('.preset-btn');
+  const tableBreakdownBody = document.getElementById('table-breakdown-body');
   const btnReset = document.getElementById('btn-reset');
   const btnPrint = document.getElementById('btn-print');
 
@@ -105,109 +132,112 @@ document.addEventListener('DOMContentLoaded', () => {
   let compoundingDragChart = null;
   let crossoverChart = null;
 
-  // Preset configurations
-  const PRESETS = {
-    balanced: {
-      accounts: { isa: true, sipp: true, gia: false },
-      lumpSums: { isa: 25000, sipp: 15000, gia: 0 },
-      monthlyContrib: { isa: 250, sipp: 150, gia: 0 },
-      assetAllocation: { ukSharesPct: 25, etfsPct: 35, fundsPct: 20, investmentTrustsPct: 10, usStocksPct: 10, europeanStocksPct: 0 },
-      tradesUk: 1,
-      tradesFunds: 0,
-      tradesOverseas: 0,
-      avgOverseasSize: 1000,
-      employerContrib: false,
-      pensionWithdrawal: 'accumulation',
-      horizon: 10,
-      returnRate: 6.0
-    },
-    'company-director': {
-      accounts: { isa: true, sipp: true, gia: false },
-      lumpSums: { isa: 20000, sipp: 60000, gia: 0 },
-      monthlyContrib: { isa: 500, sipp: 1000, gia: 0 },
-      assetAllocation: { ukSharesPct: 30, etfsPct: 40, fundsPct: 10, investmentTrustsPct: 10, usStocksPct: 10, europeanStocksPct: 0 },
-      tradesUk: 1,
-      tradesFunds: 0,
-      tradesOverseas: 1,
-      avgOverseasSize: 2000,
-      employerContrib: true, // Ltd company contribution!
-      pensionWithdrawal: 'accumulation',
-      horizon: 15,
-      returnRate: 6.5
-    },
-    'active-trader': {
-      accounts: { isa: true, sipp: false, gia: true },
-      lumpSums: { isa: 20000, sipp: 0, gia: 30000 },
-      monthlyContrib: { isa: 500, sipp: 0, gia: 500 },
-      assetAllocation: { ukSharesPct: 25, etfsPct: 15, fundsPct: 0, investmentTrustsPct: 10, usStocksPct: 40, europeanStocksPct: 10 },
-      tradesUk: 3,
-      tradesFunds: 0,
-      tradesOverseas: 4,
-      avgOverseasSize: 1500,
-      employerContrib: false,
-      pensionWithdrawal: 'accumulation',
-      horizon: 8,
-      returnRate: 7.0
-    },
-    'passive-index': {
-      accounts: { isa: true, sipp: true, gia: false },
-      lumpSums: { isa: 15000, sipp: 10000, gia: 0 },
-      monthlyContrib: { isa: 300, sipp: 200, gia: 0 },
-      assetAllocation: { ukSharesPct: 0, etfsPct: 60, fundsPct: 40, investmentTrustsPct: 0, usStocksPct: 0, europeanStocksPct: 0 },
-      tradesUk: 0,
-      tradesFunds: 0,
-      tradesOverseas: 0,
-      avgOverseasSize: 0,
-      employerContrib: false,
-      pensionWithdrawal: 'accumulation',
-      horizon: 20,
-      returnRate: 6.0
-    },
-    'high-net-worth': {
-      accounts: { isa: true, sipp: true, gia: true },
-      lumpSums: { isa: 80000, sipp: 150000, gia: 50000 },
-      monthlyContrib: { isa: 500, sipp: 500, gia: 500 },
-      assetAllocation: { ukSharesPct: 30, etfsPct: 30, fundsPct: 20, investmentTrustsPct: 10, usStocksPct: 10, europeanStocksPct: 0 },
-      tradesUk: 2,
-      tradesFunds: 1,
-      tradesOverseas: 1,
-      avgOverseasSize: 3000,
-      employerContrib: true,
-      pensionWithdrawal: 'flexible_drawdown',
-      horizon: 10,
-      returnRate: 5.5
-    }
-  };
+  // Cached state for modal
+  let currentExcludedPlatforms = [];
 
-  // Sync range slider and number input
-  function syncInputs(slider, numberInput) {
-    slider.addEventListener('input', () => {
-      numberInput.value = slider.value;
-      calculateAndRender();
-    });
-    numberInput.addEventListener('input', () => {
-      slider.value = numberInput.value;
-      calculateAndRender();
-    });
-  }
-
-  syncInputs(sliderLumpIsa, lumpIsa);
-  syncInputs(sliderLumpSipp, lumpSipp);
-  syncInputs(sliderLumpGia, lumpGia);
-
-  // Asset items definition tying checkboxes, cards, row containers and sliders
+  // Asset Items List
   const ASSET_ITEMS = [
-    { key: 'ukShares', chk: chkUkShares, card: cardUkShares, row: rowUkShares, slider: allocUkShares, valEl: valUkShares, name: 'UK Shares' },
-    { key: 'etfs', chk: chkEtfs, card: cardEtfs, row: rowEtfs, slider: allocEtfs, valEl: valEtfs, name: 'ETFs' },
-    { key: 'funds', chk: chkFunds, card: cardFunds, row: rowFunds, slider: allocFunds, valEl: valFunds, name: 'Funds / OEICs' },
-    { key: 'investmentTrusts', chk: chkIt, card: cardIt, row: rowIt, slider: allocIt, valEl: valIt, name: 'Investment Trusts' },
-    { key: 'usStocks', chk: chkUs, card: cardUs, row: rowUs, slider: allocUs, valEl: valUs, name: 'US Stocks' },
-    { key: 'europeanStocks', chk: chkEu, card: cardEu, row: rowEu, slider: allocEu, valEl: valEu, name: 'European Stocks' }
+    { key: 'ukShares', chk: chkUkShares, pill: pillUkShares, row: rowUkShares, slider: allocUkShares, valEl: valUkShares, name: 'UK Shares' },
+    { key: 'etfs', chk: chkEtfs, pill: pillEtfs, row: rowEtfs, slider: allocEtfs, valEl: valEtfs, name: 'ETFs' },
+    { key: 'funds', chk: chkFunds, pill: pillFunds, row: rowFunds, slider: allocFunds, valEl: valFunds, name: 'Funds / OEICs' },
+    { key: 'investmentTrusts', chk: chkIt, pill: pillIt, row: rowIt, slider: allocIt, valEl: valIt, name: 'Inv. Trusts' },
+    { key: 'usStocks', chk: chkUs, pill: pillUs, row: rowUs, slider: allocUs, valEl: valUs, name: 'US Stocks' },
+    { key: 'europeanStocks', chk: chkEu, pill: pillEu, row: rowEu, slider: allocEu, valEl: valEu, name: 'European Stocks' }
   ];
 
   let isAutoBalancing = false;
 
-  function syncAssetCardsAndSliders() {
+  // Formatting Helpers
+  function formatGbp(amount) {
+    if (amount === undefined || amount === null) return '£0.00';
+    return '£' + Number(amount).toLocaleString('en-GB', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  function formatGbpInt(amount) {
+    if (amount === undefined || amount === null) return '£0';
+    return '£' + Math.round(Number(amount)).toLocaleString('en-GB');
+  }
+
+  // Generate Authentic Brand SVGs & Logomarks
+  function getPlatformBrandHtml(id, name) {
+    switch (id) {
+      case 'aj-bell':
+        return `
+          <div class="flex items-center gap-2">
+            <svg class="w-6 h-6 shrink-0" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="14" fill="#dc2626"/>
+              <path d="M9 19c2.5-5 6.5-7.5 13-7M11 22c1.8-3 4.5-4.5 9-4.5" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="13" cy="11" r="2" fill="#ffffff"/>
+            </svg>
+            <span class="font-extrabold text-slate-900 text-base tracking-tight"><span class="text-[#dc2626]">AJ</span>Bell</span>
+          </div>
+        `;
+      case 'interactive-investor':
+        return `
+          <div class="flex items-center gap-2">
+            <svg class="w-6 h-6 shrink-0" viewBox="0 0 32 32" fill="none">
+              <rect x="7" y="11" width="5.5" height="15" rx="2.5" fill="#f97316"/>
+              <circle cx="9.75" cy="6" r="2.75" fill="#f97316"/>
+              <rect x="18" y="6" width="5.5" height="20" rx="2.5" fill="#f97316"/>
+            </svg>
+            <div class="leading-tight">
+              <span class="font-bold text-slate-900 text-xs tracking-tight block">interactive</span>
+              <span class="font-bold text-slate-900 text-xs tracking-tight block -mt-0.5">investor</span>
+            </div>
+          </div>
+        `;
+      case 'fidelity':
+        return `
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded bg-[#dc2626] flex items-center justify-center shrink-0 text-white font-black text-xs shadow-xs">
+              F
+            </div>
+            <div class="leading-tight">
+              <span class="font-extrabold text-[#002f6c] text-sm tracking-tight block">Fidelity</span>
+              <span class="text-[8px] font-bold text-slate-400 block tracking-wider uppercase -mt-0.5">INTERNATIONAL</span>
+            </div>
+          </div>
+        `;
+      case 'hargreaves-lansdown':
+        return `
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded bg-slate-900 flex items-center justify-center shrink-0 text-white font-serif font-black text-xs tracking-tighter shadow-xs">
+              HL
+            </div>
+            <div class="leading-tight">
+              <span class="font-bold text-slate-900 text-xs tracking-tight block">Hargreaves</span>
+              <span class="font-bold text-slate-900 text-xs tracking-tight block -mt-0.5">Lansdown</span>
+            </div>
+          </div>
+        `;
+      case 'trading-212':
+        return `
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded bg-[#0284c7] flex items-center justify-center shrink-0 text-white font-black text-[9px] shadow-xs">
+              212
+            </div>
+            <span class="font-black text-[#0284c7] text-sm tracking-tight">TRADING 212</span>
+          </div>
+        `;
+      case 'vanguard':
+        return `
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded bg-[#991b1b] flex items-center justify-center shrink-0 text-white font-bold text-xs shadow-xs">
+              ⛵
+            </div>
+            <span class="font-black text-[#991b1b] text-sm tracking-tight">Vanguard</span>
+          </div>
+        `;
+      default:
+        return `<span class="font-bold text-slate-900 text-base">${name}</span>`;
+    }
+  }
+
+  // Synchronize Asset Pills & Slider Visibility
+  function syncAssetPillsAndSliders() {
     ASSET_ITEMS.forEach(item => {
       if (!item.chk) return;
       const isChecked = item.chk.checked;
@@ -218,11 +248,11 @@ document.addEventListener('DOMContentLoaded', () => {
           item.row.classList.add('hidden');
         }
       }
-      if (item.card) {
+      if (item.pill) {
         if (isChecked) {
-          item.card.className = 'asset-card flex items-start gap-2 p-2.5 rounded-xl border border-brand-500 bg-brand-50/50 ring-1 ring-brand-500 cursor-pointer transition select-none';
+          item.pill.className = 'asset-pill checked flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md border text-xs font-semibold cursor-pointer select-none';
         } else {
-          item.card.className = 'asset-card flex items-start gap-2 p-2.5 rounded-xl border border-slate-200 bg-white hover:border-brand-400 cursor-pointer transition select-none';
+          item.pill.className = 'asset-pill unchecked flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md border text-xs font-semibold cursor-pointer select-none';
         }
       }
       if (!isChecked && item.slider && item.valEl) {
@@ -239,16 +269,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateAllocSum() {
     const active = getActiveAssetItems();
     const sum = active.reduce((acc, item) => acc + (parseInt(item.slider.value, 10) || 0), 0);
-    const allocSumText = document.getElementById('alloc-sum-text');
     if (allocSumText) {
-      allocSumText.textContent = `Total: ${sum}%`;
-    }
-    const allocSumDisplayElem = document.getElementById('alloc-sum-display');
-    if (allocSumDisplayElem) {
+      allocSumText.textContent = `${sum}%`;
       if (sum === 100) {
-        allocSumDisplayElem.className = 'text-xs px-2.5 py-0.5 rounded-full font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 shadow-sm';
+        allocSumText.className = 'font-bold text-emerald-700';
       } else {
-        allocSumDisplayElem.className = 'text-xs px-2.5 py-0.5 rounded-full font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 shadow-sm';
+        allocSumText.className = 'font-bold text-amber-600';
       }
     }
   }
@@ -347,11 +373,10 @@ document.addEventListener('DOMContentLoaded', () => {
       item.chk.addEventListener('change', () => {
         const active = getActiveAssetItems();
         if (active.length === 0) {
-          // Keep at least one checked
           item.chk.checked = true;
           return;
         }
-        syncAssetCardsAndSliders();
+        syncAssetPillsAndSliders();
         equalSplitActiveAssets();
       });
     }
@@ -363,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Quick allocation presets
+  // Preset Allocations Dropdown
   const ALLOC_PRESETS = {
     balanced: { ukShares: 25, etfs: 35, funds: 20, investmentTrusts: 10, usStocks: 10, europeanStocks: 0 },
     'etfs-only': { ukShares: 0, etfs: 100, funds: 0, investmentTrusts: 0, usStocks: 0, europeanStocks: 0 },
@@ -384,202 +409,142 @@ document.addEventListener('DOMContentLoaded', () => {
       if (item.valEl) item.valEl.textContent = `${pct}%`;
     });
 
-    syncAssetCardsAndSliders();
+    syncAssetPillsAndSliders();
     updateAllocSum();
     calculateAndRender();
     isAutoBalancing = false;
   }
 
-  document.querySelectorAll('.alloc-preset-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      applyAllocPreset(btn.dataset.alloc);
-    });
-  });
-
-  const btnBalance100 = document.getElementById('btn-balance-100');
-  if (btnBalance100) {
-    btnBalance100.addEventListener('click', () => {
-      equalSplitActiveAssets();
+  if (presetAllocSelect) {
+    presetAllocSelect.addEventListener('change', () => {
+      if (presetAllocSelect.value !== 'custom') {
+        applyAllocPreset(presetAllocSelect.value);
+      }
     });
   }
 
-  // Trading frequency sliders (Monthly Basis)
+  // Trading Frequency Sliders & Badges
+  function updateTradingSummaryBadge() {
+    const uk = Number(tradesUk.value) || 0;
+    const overseas = Number(tradesOverseas.value) || 0;
+    if (tradingSummaryBadge) {
+      tradingSummaryBadge.textContent = `${uk} UK trade${uk === 1 ? '' : 's'} / mo • ${overseas} overseas`;
+    }
+  }
+
   tradesUk.addEventListener('input', () => {
     valTradesUk.textContent = `${tradesUk.value} / mo`;
+    updateTradingSummaryBadge();
     calculateAndRender();
   });
+
   tradesFunds.addEventListener('input', () => {
     valTradesFunds.textContent = `${tradesFunds.value} / mo`;
     calculateAndRender();
   });
+
   tradesOverseas.addEventListener('input', () => {
-    const v = Number(tradesOverseas.value);
-    valTradesOverseas.textContent = v === 1 ? '1 trade / mo' : `${v} trades / mo`;
+    valTradesOverseas.textContent = `${tradesOverseas.value} / mo`;
+    updateTradingSummaryBadge();
     calculateAndRender();
   });
+
   tradeSizeOverseas.addEventListener('input', calculateAndRender);
 
-  // Horizon & Return sliders
-  horizonYears.addEventListener('input', () => {
-    valHorizon.textContent = `${horizonYears.value} Years`;
-    valHorizonDisplay.textContent = `${horizonYears.value} yrs`;
-    calculateAndRender();
-  });
-  expectedReturn.addEventListener('input', () => {
-    valReturnDisplay.textContent = `${Number(expectedReturn.value).toFixed(1)}%`;
-    calculateAndRender();
-  });
+  // Pension Rules & Badges
+  function updatePensionSummaryBadge() {
+    const hasEmployer = sippEmployerContrib.checked;
+    const mode = pensionWithdrawal.value;
+    let modeText = 'Accumulation';
+    if (mode === 'flexible_drawdown') modeText = 'Drawdown';
+    else if (mode === 'lump_sum') modeText = 'UFPLS';
+    else if (mode === 'annuity') modeText = 'Annuity';
 
-  // Account checkboxes & Monthly inputs
-  [accountIsa, accountSipp, accountGia, monthlyIsa, monthlySipp, monthlyGia, pensionWithdrawal].forEach(elem => {
-    elem.addEventListener('change', calculateAndRender);
-    elem.addEventListener('input', calculateAndRender);
-  });
+    if (pensionSummaryBadge) {
+      pensionSummaryBadge.textContent = `${hasEmployer ? 'Employer contrib.' : 'No employer contributions'} • ${modeText}`;
+    }
+  }
 
-  // SIPP employer contribution
   sippEmployerContrib.addEventListener('change', () => {
     if (sippEmployerContrib.checked) {
       employerContribWarning.classList.remove('hidden');
     } else {
       employerContribWarning.classList.add('hidden');
     }
+    updatePensionSummaryBadge();
     calculateAndRender();
   });
 
-  // Apply Preset
-  function applyPreset(presetKey) {
-    const config = PRESETS[presetKey];
-    if (!config) return;
-
-    accountIsa.checked = config.accounts.isa;
-    accountSipp.checked = config.accounts.sipp;
-    accountGia.checked = config.accounts.gia;
-
-    lumpIsa.value = config.lumpSums.isa;
-    sliderLumpIsa.value = config.lumpSums.isa;
-    lumpSipp.value = config.lumpSums.sipp;
-    sliderLumpSipp.value = config.lumpSums.sipp;
-    lumpGia.value = config.lumpSums.gia;
-    sliderLumpGia.value = config.lumpSums.gia;
-
-    monthlyIsa.value = config.monthlyContrib.isa;
-    monthlySipp.value = config.monthlyContrib.sipp;
-    monthlyGia.value = config.monthlyContrib.gia;
-
-    ASSET_ITEMS.forEach(item => {
-      let pct = 0;
-      if (item.key === 'ukShares') pct = config.assetAllocation.ukSharesPct || 0;
-      else if (item.key === 'etfs') pct = config.assetAllocation.etfsPct || 0;
-      else if (item.key === 'funds') pct = config.assetAllocation.fundsPct || 0;
-      else if (item.key === 'investmentTrusts') pct = config.assetAllocation.investmentTrustsPct || 0;
-      else if (item.key === 'usStocks') pct = config.assetAllocation.usStocksPct || 0;
-      else if (item.key === 'europeanStocks') pct = config.assetAllocation.europeanStocksPct || 0;
-
-      if (item.chk) item.chk.checked = (pct > 0);
-      if (item.slider) item.slider.value = pct;
-      if (item.valEl) item.valEl.textContent = `${pct}%`;
-    });
-    syncAssetCardsAndSliders();
-
-    tradesUk.value = config.tradesUk;
-    valTradesUk.textContent = `${config.tradesUk} / mo`;
-    tradesFunds.value = config.tradesFunds;
-    valTradesFunds.textContent = `${config.tradesFunds} / mo`;
-    tradesOverseas.value = config.tradesOverseas;
-    valTradesOverseas.textContent = Number(config.tradesOverseas) === 1 ? '1 trade / mo' : `${config.tradesOverseas} trades / mo`;
-    tradeSizeOverseas.value = config.avgOverseasSize;
-
-    sippEmployerContrib.checked = config.employerContrib;
-    if (config.employerContrib) {
-      employerContribWarning.classList.remove('hidden');
-    } else {
-      employerContribWarning.classList.add('hidden');
-    }
-
-    pensionWithdrawal.value = config.pensionWithdrawal;
-    horizonYears.value = config.horizon;
-    valHorizon.textContent = `${config.horizon} Years`;
-    valHorizonDisplay.textContent = `${config.horizon} yrs`;
-
-    expectedReturn.value = config.returnRate;
-    valReturnDisplay.textContent = `${config.returnRate.toFixed(1)}%`;
-
-    updateAllocSum();
+  pensionWithdrawal.addEventListener('change', () => {
+    updatePensionSummaryBadge();
     calculateAndRender();
+  });
 
-    // Visual feedback for active button
-    presetBtns.forEach(btn => {
-      if (btn.dataset.preset === presetKey) {
-        btn.classList.add('bg-brand-600', 'text-white', 'border-brand-600');
-        btn.classList.remove('bg-slate-100', 'text-slate-700');
-      } else {
-        btn.classList.remove('bg-brand-600', 'text-white', 'border-brand-600');
-        btn.classList.add('bg-slate-100', 'text-slate-700');
-      }
-    });
+  // Horizon & Return Sliders & Badges
+  function updateHorizonSummaryBadge() {
+    const h = horizonYears.value;
+    const r = Number(expectedReturn.value).toFixed(1);
+    if (horizonSummaryBadge) {
+      horizonSummaryBadge.textContent = `${h} years • ${r}% annual return`;
+    }
   }
 
-  presetBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      applyPreset(btn.dataset.preset);
-    });
+  horizonYears.addEventListener('input', () => {
+    valHorizonDisplay.textContent = `${horizonYears.value} yrs`;
+    updateHorizonSummaryBadge();
+    calculateAndRender();
   });
 
-  // Reset Button
-  btnReset.addEventListener('click', () => {
-    applyPreset('balanced');
+  expectedReturn.addEventListener('input', () => {
+    valReturnDisplay.textContent = `${Number(expectedReturn.value).toFixed(1)}%`;
+    updateHorizonSummaryBadge();
+    calculateAndRender();
   });
 
-  // Print Button
-  btnPrint.addEventListener('click', () => {
-    window.print();
-  });
+  // Account Checkboxes & Monthly Inputs
+  function syncAccountInputs(checkbox, input) {
+    if (!checkbox || !input) return;
+    input.disabled = !checkbox.checked;
+    if (!checkbox.checked) {
+      input.classList.add('opacity-40');
+    } else {
+      input.classList.remove('opacity-40');
+    }
+  }
 
-  // Tab switching
-  navTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      const targetId = tab.dataset.tab;
-
-      navTabs.forEach(t => {
-        t.classList.remove('text-brand-600', 'border-b-2', 'border-brand-600');
-        t.classList.add('text-slate-500');
+  [
+    { chk: accountIsa, inp: lumpIsa },
+    { chk: accountSipp, inp: lumpSipp },
+    { chk: accountGia, inp: lumpGia },
+    { chk: monthlyCheckIsa, inp: monthlyIsa },
+    { chk: monthlyCheckSipp, inp: monthlySipp },
+    { chk: monthlyCheckGia, inp: monthlyGia }
+  ].forEach(({ chk, inp }) => {
+    if (chk && inp) {
+      syncAccountInputs(chk, inp);
+      chk.addEventListener('change', () => {
+        syncAccountInputs(chk, inp);
+        calculateAndRender();
       });
-      tab.classList.remove('text-slate-500');
-      tab.classList.add('text-brand-600', 'border-b-2', 'border-brand-600');
-
-      tabContents.forEach(content => {
-        if (content.id === targetId) {
-          content.classList.remove('hidden');
-        } else {
-          content.classList.add('hidden');
-        }
-      });
-
-      // Resize charts if tab is made visible
-      if (targetId === 'tab-charts') {
-        setTimeout(() => {
-          if (compoundingDragChart) compoundingDragChart.resize();
-          if (crossoverChart) crossoverChart.resize();
-        }, 50);
-      }
-    });
+      inp.addEventListener('input', calculateAndRender);
+    }
   });
 
-  // Collect Current Inputs
+  // Read Current User Inputs
   function getCurrentInputs() {
-    const isaLump = accountIsa.checked ? Number(lumpIsa.value) || 0 : 0;
-    const sippLump = accountSipp.checked ? Number(lumpSipp.value) || 0 : 0;
-    const giaLump = accountGia.checked ? Number(lumpGia.value) || 0 : 0;
+    const isaLump = (accountIsa && accountIsa.checked) ? (Number(lumpIsa.value) || 0) : 0;
+    const sippLump = (accountSipp && accountSipp.checked) ? (Number(lumpSipp.value) || 0) : 0;
+    const giaLump = (accountGia && accountGia.checked) ? (Number(lumpGia.value) || 0) : 0;
 
-    const isaM = accountIsa.checked ? Number(monthlyIsa.value) || 0 : 0;
-    const sippM = accountSipp.checked ? Number(monthlySipp.value) || 0 : 0;
-    const giaM = accountGia.checked ? Number(monthlyGia.value) || 0 : 0;
+    const isaM = (monthlyCheckIsa && monthlyCheckIsa.checked) ? (Number(monthlyIsa.value) || 0) : 0;
+    const sippM = (monthlyCheckSipp && monthlyCheckSipp.checked) ? (Number(monthlySipp.value) || 0) : 0;
+    const giaM = (monthlyCheckGia && monthlyCheckGia.checked) ? (Number(monthlyGia.value) || 0) : 0;
 
     return {
       accounts: {
-        isa: accountIsa.checked,
-        sipp: accountSipp.checked,
-        gia: accountGia.checked
+        isa: !!(accountIsa && accountIsa.checked),
+        sipp: !!(accountSipp && accountSipp.checked),
+        gia: !!(accountGia && accountGia.checked)
       },
       lumpSums: {
         isa: isaLump,
@@ -605,26 +570,223 @@ document.addEventListener('DOMContentLoaded', () => {
         overseasTradesPerYear: (Number(tradesOverseas.value) || 0) * 12,
         avgOverseasTradeSize: Number(tradeSizeOverseas.value) || 1000
       },
-      sippEmployerContrib: sippEmployerContrib.checked,
+      sippEmployerContrib: !!(sippEmployerContrib && sippEmployerContrib.checked),
       pensionWithdrawal: pensionWithdrawal.value,
       horizonYears: Number(horizonYears.value) || 10,
       expectedReturnRate: (Number(expectedReturn.value) || 6) / 100
     };
   }
 
-  // Format currency GBP
-  function formatGbp(amount) {
-    if (amount === undefined || amount === null) return '£0.00';
-    return '£' + Number(amount).toLocaleString('en-GB', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+  // Monthly / Annual Toggle Controls
+  if (toggleViewMonthly) {
+    toggleViewMonthly.addEventListener('click', () => {
+      costViewMode = 'monthly';
+      toggleViewMonthly.classList.add('active');
+      toggleViewAnnual.classList.remove('active');
+      calculateAndRender();
     });
   }
 
-  // Format integer GBP
-  function formatGbpInt(amount) {
-    if (amount === undefined || amount === null) return '£0';
-    return '£' + Math.round(Number(amount)).toLocaleString('en-GB');
+  if (toggleViewAnnual) {
+    toggleViewAnnual.addEventListener('click', () => {
+      costViewMode = 'annual';
+      toggleViewAnnual.classList.add('active');
+      toggleViewMonthly.classList.remove('active');
+      calculateAndRender();
+    });
+  }
+
+  // Modals Interactions: Eligibility Reasons
+  function openEligibilityReasonsModal() {
+    if (!modalEligibilityReasons) return;
+    if (modalExcludedList) {
+      if (currentExcludedPlatforms.length === 0) {
+        modalExcludedList.innerHTML = `
+          <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center text-xs text-emerald-800">
+            🎉 All 6 major UK platforms fully support your current investment selection!
+          </div>
+        `;
+      } else {
+        modalExcludedList.innerHTML = currentExcludedPlatforms.map(ex => {
+          const isMonthly = (costViewMode === 'monthly');
+          const costVal = isMonthly ? (ex.yearOneTotalFee / 12) : ex.yearOneTotalFee;
+          const costSuffix = isMonthly ? '/ mo' : '/ yr';
+          return `
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  ${getPlatformBrandHtml(ex.platform.id, ex.platform.name)}
+                  <span class="text-[10px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded">Excluded</span>
+                </div>
+                <span class="text-xs text-slate-400 line-through font-semibold">${formatGbp(costVal)} ${costSuffix}</span>
+              </div>
+              <ul class="text-xs text-red-600 list-disc list-inside space-y-1">
+                ${ex.compatibility.disqualifiers.map(d => `<li><strong>${d}</strong></li>`).join('')}
+              </ul>
+              <p class="text-[11px] text-slate-500">${ex.platform.notPermittedDetails || ''}</p>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+    modalEligibilityReasons.classList.remove('hidden');
+    modalEligibilityReasons.classList.add('flex');
+  }
+
+  function closeEligibilityReasonsModal() {
+    if (!modalEligibilityReasons) return;
+    modalEligibilityReasons.classList.add('hidden');
+    modalEligibilityReasons.classList.remove('flex');
+  }
+
+  if (btnViewReasonsLink) btnViewReasonsLink.addEventListener('click', openEligibilityReasonsModal);
+  if (btnViewReasonsCard) btnViewReasonsCard.addEventListener('click', openEligibilityReasonsModal);
+  if (btnCloseReasonsModal) btnCloseReasonsModal.addEventListener('click', closeEligibilityReasonsModal);
+  if (btnCloseReasonsModalBottom) btnCloseReasonsModalBottom.addEventListener('click', closeEligibilityReasonsModal);
+
+  // Modals Interactions: Trade-offs
+  const TRADEOFF_CONTENTS = {
+    'flat-vs-pct': {
+      title: 'Flat Fees vs Percentage Fees Crossover',
+      body: `
+        <p><strong>The Core Principle:</strong> Most UK brokers charge an ongoing custody fee either as a percentage of your portfolio (e.g. <strong>Vanguard 0.15%</strong>, <strong>AJ Bell 0.25%</strong>, <strong>Hargreaves Lansdown 0.45%</strong>) or as a flat subscription fee (e.g. <strong>Interactive Investor at £143.88/year</strong>).</p>
+        <p><strong>The Tipping Point:</strong> When your portfolio is under <strong>£30,000 - £50,000</strong>, percentage brokers are almost always cheaper. However, as your wealth compounds past <strong>£60,000 to £100,000+</strong>, Interactive Investor's flat subscription or AJ Bell's £42/year share cap saves hundreds of pounds per year compared to uncapped percentage models.</p>
+        <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 font-medium">
+          💡 Check out the <strong>"Compounding & Crossover" tab</strong> at the top to see your personal crossover curve visualized across all pot sizes!
+        </div>
+      `
+    },
+    'sipp-contrib': {
+      title: 'Employer & Company Director SIPP Contributions',
+      body: `
+        <p><strong>Critical UK Tax Rule:</strong> If you operate through a UK Limited Company, contributing pre-tax profit directly into your personal pension is one of the most tax-efficient strategies available. It saves Corporation Tax and incurs zero National Insurance.</p>
+        <p><strong>Platform Incompatibility Alert:</strong> Not all brokers accept employer contributions! Specifically:</p>
+        <ul class="list-disc list-inside space-y-1 text-slate-700 pl-2">
+          <li><strong>Vanguard UK Investor:</strong> Personal member contributions only. Does NOT accept employer payments.</li>
+          <li><strong>Trading 212 SIPP:</strong> Personal direct debit / debit card only. Does NOT accept employer payments.</li>
+          <li><strong>AJ Bell, Interactive Investor, Fidelity & HL:</strong> Fully support Ltd Company employer payments with online or paper forms.</li>
+        </ul>
+      `
+    },
+    'fx-drag': {
+      title: 'Overseas Trading & Foreign Exchange Drag',
+      body: `
+        <p><strong>Hidden FX Fees:</strong> If you trade US tech stocks (Nvidia, Apple, Microsoft) or European shares, foreign exchange (FX) fees can quickly become your largest ongoing cost.</p>
+        <p><strong>How Providers Compare:</strong></p>
+        <ul class="list-disc list-inside space-y-1 text-slate-700 pl-2">
+          <li><strong>Trading 212:</strong> Just <strong>0.15% FX</strong> — by far the lowest in the UK retail market.</li>
+          <li><strong>Interactive Investor:</strong> 0.99% standard, but offers <strong>multi-currency accounts</strong> allowing you to hold USD directly and eliminate repeat FX fees on US sales.</li>
+          <li><strong>AJ Bell & Fidelity:</strong> 0.75% FX fee.</li>
+          <li><strong>Hargreaves Lansdown:</strong> 1.00% FX fee on transactions under £5,000.</li>
+        </ul>
+      `
+    }
+  };
+
+  function openTradeoffModal(type) {
+    const data = TRADEOFF_CONTENTS[type];
+    if (!data || !modalTradeOffs) return;
+    if (modalTradeoffTitle) modalTradeoffTitle.textContent = data.title;
+    if (modalTradeoffBody) modalTradeoffBody.innerHTML = data.body;
+    modalTradeOffs.classList.remove('hidden');
+    modalTradeOffs.classList.add('flex');
+  }
+
+  function closeTradeoffModal() {
+    if (!modalTradeOffs) return;
+    modalTradeOffs.classList.add('hidden');
+    modalTradeOffs.classList.remove('flex');
+  }
+
+  document.querySelectorAll('.tradeoff-link').forEach(link => {
+    link.addEventListener('click', () => {
+      openTradeoffModal(link.dataset.tradeoff);
+    });
+  });
+
+  if (btnCloseTradeoffModal) btnCloseTradeoffModal.addEventListener('click', closeTradeoffModal);
+  if (btnCloseTradeoffModalBottom) btnCloseTradeoffModalBottom.addEventListener('click', closeTradeoffModal);
+
+  // Tabs Switching
+  navTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetId = tab.dataset.tab;
+      navTabs.forEach(t => {
+        t.classList.remove('active-tab', 'text-slate-900', 'border-b-2', 'border-emerald-600');
+        t.classList.add('text-slate-500');
+      });
+      tab.classList.add('active-tab', 'text-slate-900', 'border-b-2', 'border-emerald-600');
+      tab.classList.remove('text-slate-500');
+
+      tabContents.forEach(content => {
+        if (content.id === targetId) {
+          content.classList.remove('hidden');
+        } else {
+          content.classList.add('hidden');
+        }
+      });
+
+      if (targetId === 'tab-charts') {
+        setTimeout(() => {
+          if (compoundingDragChart) compoundingDragChart.resize();
+          if (crossoverChart) crossoverChart.resize();
+        }, 50);
+      }
+    });
+  });
+
+  // Reset to Defaults (Mockup defaults)
+  btnReset.addEventListener('click', () => {
+    accountIsa.checked = true;
+    accountSipp.checked = true;
+    accountGia.checked = false;
+    lumpIsa.value = 25000;
+    lumpSipp.value = 15000;
+    lumpGia.value = 0;
+
+    monthlyCheckIsa.checked = true;
+    monthlyCheckSipp.checked = true;
+    monthlyCheckGia.checked = false;
+    monthlyIsa.value = 250;
+    monthlySipp.value = 150;
+    monthlyGia.value = 0;
+
+    syncAccountInputs(accountIsa, lumpIsa);
+    syncAccountInputs(accountSipp, lumpSipp);
+    syncAccountInputs(accountGia, lumpGia);
+    syncAccountInputs(monthlyCheckIsa, monthlyIsa);
+    syncAccountInputs(monthlyCheckSipp, monthlySipp);
+    syncAccountInputs(monthlyCheckGia, monthlyGia);
+
+    tradesUk.value = 1;
+    valTradesUk.textContent = '1 / mo';
+    tradesFunds.value = 0;
+    valTradesFunds.textContent = '0 / mo';
+    tradesOverseas.value = 0;
+    valTradesOverseas.textContent = '0 / mo';
+    tradeSizeOverseas.value = 1000;
+
+    sippEmployerContrib.checked = false;
+    employerContribWarning.classList.add('hidden');
+    pensionWithdrawal.value = 'accumulation';
+
+    horizonYears.value = 10;
+    valHorizonDisplay.textContent = '10 yrs';
+    expectedReturn.value = 6;
+    valReturnDisplay.textContent = '6.0%';
+
+    presetAllocSelect.value = 'balanced';
+    applyAllocPreset('balanced');
+
+    updateTradingSummaryBadge();
+    updatePensionSummaryBadge();
+    updateHorizonSummaryBadge();
+
+    calculateAndRender();
+  });
+
+  if (btnPrint) {
+    btnPrint.addEventListener('click', () => window.print());
   }
 
   // MAIN CALCULATION & RENDERING LOOP
@@ -637,25 +799,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const inputs = getCurrentInputs();
 
-      // Update summary badges
+      // Dynamic summary labels
       const totalLump = inputs.lumpSums.isa + inputs.lumpSums.sipp + inputs.lumpSums.gia;
       const totalMonthly = inputs.monthlyContrib.isa + inputs.monthlyContrib.sipp + inputs.monthlyContrib.gia;
-      if (totalPotDisplay) totalPotDisplay.textContent = `Total: ${formatGbpInt(totalLump)}`;
-      if (totalMonthlyDisplay) totalMonthlyDisplay.textContent = `${formatGbpInt(totalMonthly)} / month`;
+      if (totalLumpDisplay) totalLumpDisplay.textContent = `Total: ${formatGbpInt(totalLump)}`;
+      if (totalMonthlyDisplay) totalMonthlyDisplay.textContent = `Total: ${formatGbpInt(totalMonthly)} / mo`;
+      if (profileSummaryText) {
+        profileSummaryText.textContent = `${formatGbpInt(totalLump)} invested • ${formatGbpInt(totalMonthly)} monthly • ${inputs.horizonYears}-year horizon`;
+      }
 
-      // Run comparison engine
+      // Execute Comparison Engine
       const rankedPlatforms = PlatformCalculator.compareAllPlatforms(inputs);
+      currentExcludedPlatforms = rankedPlatforms.excludedPlatforms || [];
 
-      // 1. Render Platform Leaderboard Cards
+      // 1. Render Sub-bar & Highlight Banner
+      renderStatusAndHighlight(rankedPlatforms);
+
+      // 2. Render Platform Leaderboard Cards
       renderPlatformCards(rankedPlatforms);
 
-      // 2. Render Fee Breakdown Table
+      // 3. Render Excluded Platforms Banner
+      renderExcludedBanner(currentExcludedPlatforms);
+
+      // 4. Render Fee Breakdown Table
       renderBreakdownTable(rankedPlatforms);
 
-      // 3. Render Charts
+      // 5. Render Charts
       renderCharts(rankedPlatforms, inputs);
 
-      // Refresh icons
+      // Refresh Lucide Icons
       if (window.lucide && window.lucide.createIcons) {
         window.lucide.createIcons();
       }
@@ -664,296 +836,361 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Render Leaderboard Cards (Only completely compatible platforms)
-  // Render Leaderboard Cards (Only completely compatible platforms)
+  // Render Sub-bar & Lowest Cost Highlight Banner
+  function renderStatusAndHighlight(rankedPlatforms) {
+    const compCount = rankedPlatforms.length;
+    const exclCount = currentExcludedPlatforms.length;
+
+    if (statusEligibleCount) {
+      statusEligibleCount.innerHTML = `
+        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+        <span>${compCount} eligible platform${compCount === 1 ? '' : 's'}</span>
+      `;
+    }
+
+    if (statusExcludedText) {
+      statusExcludedText.textContent = `${exclCount} excluded`;
+    }
+
+    if (lowestCostBanner) {
+      if (compCount >= 2) {
+        const lowest = rankedPlatforms[0];
+        const highest = rankedPlatforms[compCount - 1];
+        const diff = highest.yearOneTotalFee - lowest.yearOneTotalFee;
+        lowestCostBanner.classList.remove('hidden');
+        if (bannerLowestTitle) bannerLowestTitle.textContent = `Lowest estimated cost: ${lowest.platform.name}`;
+        if (bannerLowestDesc) {
+          bannerLowestDesc.textContent = `£${diff.toFixed(2)} / year less than the highest-cost eligible platform (${highest.yearOneTotalFee.toFixed(2)} minus ${lowest.yearOneTotalFee.toFixed(2)}).`;
+        }
+      } else if (compCount === 1) {
+        lowestCostBanner.classList.remove('hidden');
+        const lowest = rankedPlatforms[0];
+        if (bannerLowestTitle) bannerLowestTitle.textContent = `Lowest estimated cost: ${lowest.platform.name}`;
+        if (bannerLowestDesc) {
+          bannerLowestDesc.textContent = `Sole qualifying platform based on your exact criteria. Year 1 cost: ${formatGbp(lowest.yearOneTotalFee)}.`;
+        }
+      } else {
+        lowestCostBanner.classList.add('hidden');
+      }
+    }
+  }
+
+  // Render Platform Cards matching Mockup
   function renderPlatformCards(rankedPlatforms) {
+    if (!platformCardsContainer) return;
     platformCardsContainer.innerHTML = '';
 
     const isMonthly = (costViewMode === 'monthly');
-
-    // Render Live Compatibility Status Bar with Monthly/Annual View Toggle
-    const statusBar = document.getElementById('compatibility-status-bar');
-    if (statusBar) {
-      const compCount = rankedPlatforms.length;
-      const exclCount = rankedPlatforms.excludedPlatforms ? rankedPlatforms.excludedPlatforms.length : 0;
-      statusBar.innerHTML = `
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-200 shrink-0"></span>
-          <span class="font-bold text-slate-800">
-            Showing ${compCount} platform${compCount === 1 ? '' : 's'} that completely satisfy your criteria
-          </span>
-        </div>
-        <div class="flex items-center gap-2 flex-wrap">
-          <!-- Toggle Monthly / Annual View -->
-          <div class="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-[11px] font-semibold text-slate-600 shadow-2xs">
-            <button id="toggle-view-monthly" class="px-2.5 py-1 rounded-md transition ${isMonthly ? 'bg-brand-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
-              Monthly View (/mo)
-            </button>
-            <button id="toggle-view-annual" class="px-2.5 py-1 rounded-md transition ${!isMonthly ? 'bg-brand-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
-              Annual View (/yr)
-            </button>
-          </div>
-          ${exclCount > 0 ? `
-            <span class="text-[11px] font-semibold text-slate-600 bg-slate-200/70 px-2.5 py-0.5 rounded-full">
-              ${exclCount} platform${exclCount === 1 ? '' : 's'} excluded
-            </span>
-          ` : `
-            <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-100/70 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-              <i data-lucide="check" class="w-3 h-3 text-emerald-600"></i>
-              <span>All platforms compatible</span>
-            </span>
-          `}
-        </div>
-      `;
-
-      // Attach event listeners for Monthly/Annual toggle
-      const btnMonthly = document.getElementById('toggle-view-monthly');
-      const btnAnnual = document.getElementById('toggle-view-annual');
-      if (btnMonthly) {
-        btnMonthly.addEventListener('click', () => {
-          costViewMode = 'monthly';
-          renderPlatformCards(rankedPlatforms);
-          renderBreakdownTable(rankedPlatforms);
-          if (window.lucide) window.lucide.createIcons();
-        });
-      }
-      if (btnAnnual) {
-        btnAnnual.addEventListener('click', () => {
-          costViewMode = 'annual';
-          renderPlatformCards(rankedPlatforms);
-          renderBreakdownTable(rankedPlatforms);
-          if (window.lucide) window.lucide.createIcons();
-        });
-      }
-    }
 
     if (rankedPlatforms.length === 0) {
       platformCardsContainer.innerHTML = `
         <div class="p-6 rounded-2xl bg-amber-50 border border-amber-200 text-center space-y-2">
           <i data-lucide="alert-circle" class="w-8 h-8 text-amber-600 mx-auto"></i>
-          <h4 class="font-bold text-amber-900">No platforms satisfy this exact combination</h4>
-          <p class="text-xs text-amber-800">Please review your selected investments or account options above.</p>
+          <h4 class="font-bold text-amber-900 text-sm">No platforms satisfy this exact combination</h4>
+          <p class="text-xs text-amber-800">Please review your selected investment types or employer contribution option in the left panel.</p>
         </div>
       `;
-    } else {
-      rankedPlatforms.forEach((result, idx) => {
-        const p = result.platform;
-        const isWinner = (idx === 0);
-
-        const monthlyCost = result.yearOneTotalFee / 12;
-        const monthlyPlatformFee = result.totalPlatformFee / 12;
-        const monthlyDealingFee = result.totalDealingFee / 12;
-        const monthlyRegularInv = result.regularInvestingFee / 12;
-        const monthlyFx = result.fxFee / 12;
-
-        const card = document.createElement('div');
-        card.className = `platform-card bg-white rounded-2xl border p-5 shadow-sm space-y-4 transition-all ${
-          isWinner
-            ? 'border-emerald-500 ring-2 ring-emerald-500/20'
-            : 'border-slate-200'
-        }`;
-
-        // Badge logic
-        let badgeHtml = '';
-        if (isWinner) {
-          badgeHtml = `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-            <i data-lucide="trophy" class="w-3.5 h-3.5 text-emerald-600"></i>
-            <span>#1 Best Recommendation</span>
-          </span>`;
-        } else {
-          badgeHtml = `<span class="bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
-            Rank #${result.rank}
-          </span>`;
-        }
-
-        card.innerHTML = `
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div class="space-y-1.5">
-              <div class="flex items-center gap-2 flex-wrap">
-                ${badgeHtml}
-                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                  <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-600"></i>
-                  <span>100% Criteria Match</span>
-                </span>
-                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-100">
-                  ${p.badge}
-                </span>
-              </div>
-              <h4 class="text-xl font-bold text-slate-900">${p.name}</h4>
-            </div>
-
-            <div class="text-right sm:border-l sm:border-slate-100 sm:pl-4 min-w-[145px]">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">${isMonthly ? 'Est. Monthly Cost' : 'Year 1 Total Cost'}</span>
-              <div class="text-2xl font-black ${isWinner ? 'text-emerald-600' : 'text-slate-900'}">
-                ${formatGbp(isMonthly ? monthlyCost : result.yearOneTotalFee)} <span class="text-xs font-semibold text-slate-500">${isMonthly ? '/ mo' : '/ yr'}</span>
-              </div>
-              <span class="text-[11px] text-slate-500 block">
-                ${isMonthly ? `${formatGbp(result.yearOneTotalFee)} / yr` : `${formatGbp(monthlyCost)} / mo`} (${result.effectiveFeePct.toFixed(2)}% drag)
-              </span>
-            </div>
-          </div>
-
-          <!-- Quick 4-box metrics (Monthly with Annual reference) -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-xs">
-            <div class="bg-slate-50 p-2 rounded-lg text-center">
-              <span class="text-[10px] text-slate-400 font-bold uppercase block">Platform Fee</span>
-              <span class="font-bold text-slate-800">${formatGbp(isMonthly ? monthlyPlatformFee : result.totalPlatformFee)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
-              <span class="text-[10px] text-slate-400 block">${isMonthly ? `${formatGbp(result.totalPlatformFee)}/yr` : `${formatGbp(monthlyPlatformFee)}/mo`}</span>
-            </div>
-            <div class="bg-slate-50 p-2 rounded-lg text-center">
-              <span class="text-[10px] text-slate-400 font-bold uppercase block">Dealing Fees</span>
-              <span class="font-bold text-slate-800">${formatGbp(isMonthly ? monthlyDealingFee : result.totalDealingFee)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
-              <span class="text-[10px] text-slate-400 block">${isMonthly ? `${formatGbp(result.totalDealingFee)}/yr` : `${formatGbp(monthlyDealingFee)}/mo`}</span>
-            </div>
-            <div class="bg-slate-50 p-2 rounded-lg text-center">
-              <span class="text-[10px] text-slate-400 font-bold uppercase block">Regular Inv.</span>
-              <span class="font-bold text-slate-800">${formatGbp(isMonthly ? monthlyRegularInv : result.regularInvestingFee)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
-              <span class="text-[10px] text-slate-400 block">${isMonthly ? `${formatGbp(result.regularInvestingFee)}/yr` : `${formatGbp(monthlyRegularInv)}/mo`}</span>
-            </div>
-            <div class="bg-slate-50 p-2 rounded-lg text-center">
-              <span class="text-[10px] text-slate-400 font-bold uppercase block">FX Fees</span>
-              <span class="font-bold text-slate-800">${formatGbp(isMonthly ? monthlyFx : result.fxFee)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
-              <span class="text-[10px] text-slate-400 block">${isMonthly ? `${formatGbp(result.fxFee)}/yr` : `${formatGbp(monthlyFx)}/mo`}</span>
-            </div>
-          </div>
-
-          <!-- Accordion Toggle for Detailed Specs -->
-          <details class="group text-xs pt-1">
-            <summary class="cursor-pointer font-semibold text-brand-600 hover:text-brand-800 list-none flex items-center justify-between py-1 border-t border-slate-100">
-              <span>View Pros, Cons & Platform Highlights</span>
-              <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-open:rotate-180"></i>
-            </summary>
-            
-            <div class="pt-3 space-y-3">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div class="space-y-1">
-                  <span class="font-bold text-emerald-800 flex items-center gap-1">
-                    <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
-                    <span>Strengths / Pros</span>
-                  </span>
-                  <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
-                    ${p.pros.map(pro => `<li>${pro}</li>`).join('')}
-                  </ul>
-                </div>
-
-                <div class="space-y-1">
-                  <span class="font-bold text-red-800 flex items-center gap-1">
-                    <i data-lucide="x" class="w-3.5 h-3.5 text-red-600"></i>
-                    <span>Limitations / Cons</span>
-                  </span>
-                  <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
-                    ${p.cons.map(con => `<li>${con}</li>`).join('')}
-                  </ul>
-                </div>
-              </div>
-
-              <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
-                <div>
-                  <span class="text-slate-400 font-semibold block">Cash Interest:</span>
-                  <span class="font-bold text-slate-800">${p.features.interestOnCash}</span>
-                </div>
-                <div>
-                  <span class="text-slate-400 font-semibold block">Customer Service:</span>
-                  <span class="font-medium text-slate-800">${p.features.customerService}</span>
-                </div>
-                <div>
-                  <span class="text-slate-400 font-semibold block">App Store Score:</span>
-                  <span class="font-medium text-slate-800">${p.features.mobileAppRating}</span>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-between pt-1">
-                <span class="text-[11px] text-slate-500 font-medium">5-Year Projected Cumulative Cost: <strong>${formatGbpInt(result.fiveYearCost)}</strong></span>
-                <a href="${p.officialUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-brand-600 hover:text-brand-800 font-bold text-xs">
-                  <span>Visit ${p.shortName}</span>
-                  <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
-                </a>
-              </div>
-            </div>
-          </details>
-        `;
-
-        platformCardsContainer.appendChild(card);
-      });
+      return;
     }
 
-    // Render Excluded Platforms Drawer
-    const excludedContainer = document.getElementById('excluded-platforms-container');
-    if (excludedContainer) {
-      const excluded = rankedPlatforms.excludedPlatforms || [];
-      if (excluded.length > 0) {
-        excludedContainer.innerHTML = `
-          <details class="group bg-slate-50/80 border border-slate-200 rounded-2xl p-4 text-xs transition">
-            <summary class="cursor-pointer font-bold text-slate-700 hover:text-slate-900 flex items-center justify-between list-none">
-              <span class="flex items-center gap-2">
-                <i data-lucide="ban" class="w-4 h-4 text-slate-400"></i>
-                <span>View ${excluded.length} Excluded Platform${excluded.length > 1 ? 's' : ''} (Not Meeting All Criteria)</span>
-              </span>
-              <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-open:rotate-180 text-slate-400"></i>
-            </summary>
+    rankedPlatforms.forEach((result, idx) => {
+      const p = result.platform;
+      const isWinner = (idx === 0);
+      const rankNumStr = String(idx + 1).padStart(2, '0');
 
-            <div class="pt-3 space-y-2.5">
-              <p class="text-[11px] text-slate-500">The following platforms cannot completely fulfill your portfolio because they do not permit one or more of your chosen investments or pension contribution types:</p>
-              <div class="grid grid-cols-1 gap-2">
-                ${excluded.map(ex => `
-                  <div class="p-3 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
-                    <div>
-                      <div class="flex items-center gap-2">
-                        <span class="font-bold text-slate-900">${ex.platform.name}</span>
-                        <span class="text-[10px] text-red-700 bg-red-100 font-semibold px-2 py-0.5 rounded">Excluded</span>
-                      </div>
-                      <ul class="text-[11px] text-red-600 list-disc list-inside space-y-0.5 pt-1">
-                        ${ex.compatibility.disqualifiers.map(d => `<li>${d}</li>`).join('')}
-                      </ul>
-                    </div>
-                    <div class="text-right sm:border-l sm:border-slate-100 sm:pl-3 min-w-[120px]">
-                      <span class="text-[10px] text-slate-400 uppercase font-semibold block">Indicative Cost</span>
-                      <span class="font-bold text-slate-500 line-through">${formatGbp(isMonthly ? ex.yearOneTotalFee / 12 : ex.yearOneTotalFee)} <span class="text-[10px] font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
-                      <span class="text-[10px] text-slate-400 block">${isMonthly ? `${formatGbp(ex.yearOneTotalFee)}/yr` : `${formatGbp(ex.yearOneTotalFee / 12)}/mo`}</span>
-                    </div>
-                  </div>
-                `).join('')}
+      const monthlyCost = result.yearOneTotalFee / 12;
+      const annualCost = result.yearOneTotalFee;
+
+      const monthlyPlatform = result.totalPlatformFee / 12;
+      const annualPlatform = result.totalPlatformFee;
+
+      const monthlyDealing = result.totalDealingFee / 12;
+      const annualDealing = result.totalDealingFee;
+
+      const monthlyRegular = result.regularInvestingFee / 12;
+      const annualRegular = result.regularInvestingFee;
+
+      const monthlyFx = result.fxFee / 12;
+      const annualFx = result.fxFee;
+
+      const card = document.createElement('div');
+      card.className = `platform-card bg-white rounded-xl p-4 space-y-3.5 shadow-2xs ${
+        isWinner ? 'winner-card' : 'border border-slate-200'
+      }`;
+
+      if (isWinner) {
+        // Winner Card Layout
+        card.innerHTML = `
+          <!-- Top Row: Badge 01 Lowest cost & Cost Display -->
+          <div class="flex items-center justify-between">
+            <span class="bg-[#fef9c3] text-[#854d0e] border border-[#fef08a] text-[11px] font-bold px-2.5 py-0.5 rounded-md flex items-center gap-1 shadow-2xs">
+              <span>🏆</span>
+              <span>01 · Lowest cost</span>
+            </span>
+            <div class="text-right">
+              <div class="text-xl sm:text-2xl font-black text-slate-900">
+                ${formatGbp(isMonthly ? monthlyCost : annualCost)} <span class="text-xs font-semibold text-slate-500">${isMonthly ? '/ month' : '/ year'}</span>
+              </div>
+              <span class="text-[11px] text-slate-500 block">
+                ${isMonthly ? `${formatGbp(annualCost)} / year` : `${formatGbp(monthlyCost)} / month`} • <span class="text-emerald-700 font-semibold">${result.effectiveFeePct.toFixed(2)}% fee drag</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Platform Logo & Subtitle -->
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+            ${getPlatformBrandHtml(p.id, p.name)}
+            <span class="text-xs text-slate-500 font-medium">${p.badge}</span>
+          </div>
+
+          <!-- 4 Metrics with vertical dividers -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 pt-2 border-t border-slate-100 text-xs">
+            <div class="metric-divider p-2 text-center">
+              <span class="text-[11px] text-slate-400 font-medium block">Platform</span>
+              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyPlatform : annualPlatform)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
+            </div>
+            <div class="metric-divider p-2 text-center">
+              <span class="text-[11px] text-slate-400 font-medium block">Dealing</span>
+              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyDealing : annualDealing)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
+            </div>
+            <div class="metric-divider p-2 text-center">
+              <span class="text-[11px] text-slate-400 font-medium block">Regular investing</span>
+              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyRegular : annualRegular)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
+            </div>
+            <div class="metric-divider p-2 text-center">
+              <span class="text-[11px] text-slate-400 font-medium block">FX</span>
+              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyFx : annualFx)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Criteria Match, 5-Yr Fees, Accordion, Visit Button -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
+            <div class="flex items-center gap-3">
+              <span class="text-emerald-700 font-bold flex items-center gap-1">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-600"></i>
+                <span>Meets all selected criteria</span>
+              </span>
+              <span class="text-slate-700 font-medium">5-year fees <strong>${formatGbpInt(result.fiveYearCost)}</strong></span>
+            </div>
+            <div class="flex items-center gap-3 self-end sm:self-auto">
+              <button class="btn-toggle-drawer text-xs text-slate-600 hover:text-slate-900 font-medium flex items-center gap-1 transition">
+                <span>Pros, cons & highlights</span>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+              </button>
+              <a href="${p.officialUrl}" target="_blank" rel="noopener noreferrer" class="bg-[#064e3b] hover:bg-[#043d2e] text-white px-3.5 py-1.5 rounded-lg font-semibold text-xs flex items-center gap-1 shadow-2xs transition">
+                <span>Visit platform</span>
+                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Collapsible Drawer -->
+          <div class="pros-cons-drawer hidden pt-3 border-t border-slate-100 space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div class="space-y-1">
+                <span class="font-bold text-emerald-800 flex items-center gap-1">
+                  <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                  <span>Strengths / Pros</span>
+                </span>
+                <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
+                  ${p.pros.map(pro => `<li>${pro}</li>`).join('')}
+                </ul>
+              </div>
+              <div class="space-y-1">
+                <span class="font-bold text-red-800 flex items-center gap-1">
+                  <i data-lucide="x" class="w-3.5 h-3.5 text-red-600"></i>
+                  <span>Limitations / Cons</span>
+                </span>
+                <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
+                  ${p.cons.map(con => `<li>${con}</li>`).join('')}
+                </ul>
               </div>
             </div>
-          </details>
+            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 grid grid-cols-3 gap-2 text-[11px]">
+              <div>
+                <span class="text-slate-400 block font-medium">Cash Interest:</span>
+                <span class="font-semibold text-slate-800">${p.features.interestOnCash}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block font-medium">Support:</span>
+                <span class="font-semibold text-slate-800">${p.features.customerService}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block font-medium">App Rating:</span>
+                <span class="font-semibold text-slate-800">${p.features.mobileAppRating}</span>
+              </div>
+            </div>
+          </div>
         `;
       } else {
-        excludedContainer.innerHTML = '';
+        // Cards 02, 03, 04... Layout
+        card.innerHTML = `
+          <!-- Top Row: Rank Number & Cost Display -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-bold text-slate-700 w-5">${rankNumStr}</span>
+              <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                ${getPlatformBrandHtml(p.id, p.name)}
+                <span class="text-xs text-slate-500 font-medium">${p.badge}</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-xl sm:text-2xl font-black text-slate-900">
+                ${formatGbp(isMonthly ? monthlyCost : annualCost)} <span class="text-xs font-semibold text-slate-500">${isMonthly ? '/ month' : '/ year'}</span>
+              </div>
+              <span class="text-[11px] text-slate-500 block">
+                ${isMonthly ? `${formatGbp(annualCost)} / year` : `${formatGbp(monthlyCost)} / month`} • <span class="text-slate-600 font-medium">${result.effectiveFeePct.toFixed(2)}% fee drag</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- 4 Metrics with vertical dividers -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 pt-2 border-t border-slate-100 text-xs">
+            <div class="metric-divider p-2 text-center">
+              <span class="text-[11px] text-slate-400 font-medium block">Platform</span>
+              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyPlatform : annualPlatform)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
+            </div>
+            <div class="metric-divider p-2 text-center">
+              <span class="text-[11px] text-slate-400 font-medium block">Dealing</span>
+              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyDealing : annualDealing)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
+            </div>
+            <div class="metric-divider p-2 text-center">
+              <span class="text-[11px] text-slate-400 font-medium block">Regular investing</span>
+              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyRegular : annualRegular)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
+            </div>
+            <div class="metric-divider p-2 text-center">
+              <span class="text-[11px] text-slate-400 font-medium block">FX</span>
+              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyFx : annualFx)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Criteria Match, 5-Yr Fees, Accordion, Visit Link -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
+            <div class="flex items-center gap-3">
+              <span class="text-emerald-700 font-bold flex items-center gap-1">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-600"></i>
+                <span>Criteria match</span>
+              </span>
+              <span class="text-slate-700 font-medium">5-year fees <strong>${formatGbpInt(result.fiveYearCost)}</strong></span>
+            </div>
+            <div class="flex items-center gap-3 self-end sm:self-auto">
+              <button class="btn-toggle-drawer text-xs text-slate-600 hover:text-slate-900 font-medium flex items-center gap-1 transition">
+                <span>Pros, cons & highlights</span>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+              </button>
+              <a href="${p.officialUrl}" target="_blank" rel="noopener noreferrer" class="text-slate-600 hover:text-slate-900 font-bold text-xs flex items-center gap-1 transition">
+                <span>Visit platform</span>
+                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-400"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Collapsible Drawer -->
+          <div class="pros-cons-drawer hidden pt-3 border-t border-slate-100 space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div class="space-y-1">
+                <span class="font-bold text-emerald-800 flex items-center gap-1">
+                  <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                  <span>Strengths / Pros</span>
+                </span>
+                <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
+                  ${p.pros.map(pro => `<li>${pro}</li>`).join('')}
+                </ul>
+              </div>
+              <div class="space-y-1">
+                <span class="font-bold text-red-800 flex items-center gap-1">
+                  <i data-lucide="x" class="w-3.5 h-3.5 text-red-600"></i>
+                  <span>Limitations / Cons</span>
+                </span>
+                <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
+                  ${p.cons.map(con => `<li>${con}</li>`).join('')}
+                </ul>
+              </div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 grid grid-cols-3 gap-2 text-[11px]">
+              <div>
+                <span class="text-slate-400 block font-medium">Cash Interest:</span>
+                <span class="font-semibold text-slate-800">${p.features.interestOnCash}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block font-medium">Support:</span>
+                <span class="font-semibold text-slate-800">${p.features.customerService}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block font-medium">App Rating:</span>
+                <span class="font-semibold text-slate-800">${p.features.mobileAppRating}</span>
+              </div>
+            </div>
+          </div>
+        `;
       }
+
+      // Attach Toggle Event to Drawer
+      const toggleBtn = card.querySelector('.btn-toggle-drawer');
+      const drawer = card.querySelector('.pros-cons-drawer');
+      if (toggleBtn && drawer) {
+        toggleBtn.addEventListener('click', () => {
+          const isClosed = drawer.classList.contains('hidden');
+          if (isClosed) {
+            drawer.classList.remove('hidden');
+            toggleBtn.querySelector('i')?.classList.add('rotate-180');
+          } else {
+            drawer.classList.add('hidden');
+            toggleBtn.querySelector('i')?.classList.remove('rotate-180');
+          }
+        });
+      }
+
+      platformCardsContainer.appendChild(card);
+    });
+  }
+
+  // Render Amber Excluded Platforms Banner
+  function renderExcludedBanner(excluded) {
+    if (!excludedPlatformsBanner) return;
+    if (excluded.length === 0) {
+      excludedPlatformsBanner.classList.add('hidden');
+      return;
+    }
+
+    excludedPlatformsBanner.classList.remove('hidden');
+    if (excludedBannerTitle) {
+      excludedBannerTitle.textContent = `${excluded.length} platform${excluded.length === 1 ? '' : 's'} excluded`;
+    }
+    if (excludedBannerList) {
+      excludedBannerList.textContent = excluded.map(ex => ex.platform.name).join(' • ');
     }
   }
 
-  // Render Breakdown Table
+  // Render Fee Breakdown Table
   function renderBreakdownTable(rankedPlatforms) {
+    if (!tableBreakdownBody) return;
     tableBreakdownBody.innerHTML = '';
 
     rankedPlatforms.forEach((res, idx) => {
       const isWinner = (idx === 0);
-      const isDisqualified = res.compatibility.hasDisqualifier;
-
       const row = document.createElement('tr');
-      row.className = isWinner ? 'bg-emerald-50/50 font-bold' : (idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50');
+      row.className = isWinner ? 'bg-emerald-50/60 font-bold' : (idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50');
 
       row.innerHTML = `
-        <td class="py-3 px-4">
+        <td class="py-2.5 px-3">
           <div class="flex items-center gap-2">
             <span class="w-5 h-5 rounded-full ${isWinner ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'} text-[10px] font-bold flex items-center justify-center">
-              ${res.rank}
+              ${idx + 1}
             </span>
             <span class="font-bold text-slate-900">${res.platform.name}</span>
-            ${isDisqualified ? '<span class="text-[10px] text-red-600 bg-red-100 px-1.5 py-0.5 rounded">Incompatible</span>' : ''}
           </div>
         </td>
-        <td class="py-3 px-3 text-right text-slate-700">${formatGbp(res.accountFees.isa)}</td>
-        <td class="py-3 px-3 text-right text-slate-700">${formatGbp(res.accountFees.sipp)}</td>
-        <td class="py-3 px-3 text-right text-slate-700">${formatGbp(res.totalDealingFee)}</td>
-        <td class="py-3 px-3 text-right text-slate-700">${formatGbp(res.regularInvestingFee)}</td>
-        <td class="py-3 px-3 text-right text-slate-700">${formatGbp(res.fxFee)}</td>
-        <td class="py-3 px-4 text-right ${isWinner ? 'text-emerald-700 bg-emerald-100/50' : 'text-slate-900 bg-brand-50/30'} font-extrabold">
+        <td class="py-2.5 px-3 text-right text-slate-700">${formatGbp(res.accountFees.isa)}</td>
+        <td class="py-2.5 px-3 text-right text-slate-700">${formatGbp(res.accountFees.sipp)}</td>
+        <td class="py-2.5 px-3 text-right text-slate-700">${formatGbp(res.totalDealingFee)}</td>
+        <td class="py-2.5 px-3 text-right text-slate-700">${formatGbp(res.regularInvestingFee)}</td>
+        <td class="py-2.5 px-3 text-right text-slate-700">${formatGbp(res.fxFee)}</td>
+        <td class="py-2.5 px-3 text-right ${isWinner ? 'text-emerald-700 bg-emerald-100/50' : 'text-slate-900 bg-emerald-50/30'} font-extrabold">
           <div>${formatGbp(res.yearOneTotalFee)}</div>
           <div class="text-[10px] text-slate-500 font-normal">${formatGbp(res.yearOneTotalFee / 12)}/mo</div>
         </td>
-        <td class="py-3 px-4 text-right font-bold text-slate-800">
+        <td class="py-2.5 px-3 text-right font-bold text-slate-800">
           ${formatGbpInt(res.fiveYearCost)}
         </td>
       `;
@@ -964,12 +1201,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Render Charts
   function renderCharts(rankedPlatforms, inputs) {
-    if (typeof Chart === 'undefined') {
-      console.warn('Chart.js CDN is not loaded yet');
-      return;
-    }
+    if (typeof Chart === 'undefined') return;
 
-    // 1. Compounding Fee Drag Chart
+    // 1. Compounding Drag Chart
     const horizon = inputs.horizonYears;
     const yearLabels = Array.from({ length: horizon }, (_, i) => `Yr ${i + 1}`);
 
@@ -979,9 +1213,8 @@ document.addEventListener('DOMContentLoaded', () => {
         label: res.platform.shortName,
         data: data,
         borderColor: res.platform.logoColor,
-        backgroundColor: res.platform.logoColor + '20',
+        backgroundColor: res.platform.logoColor + '15',
         borderWidth: res.rank === 1 ? 3 : 1.5,
-        borderDash: res.compatibility.hasDisqualifier ? [5, 5] : [],
         tension: 0.2,
         pointRadius: 2
       };
@@ -990,43 +1223,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasCompounding = document.getElementById('chart-compounding-drag');
     if (canvasCompounding) {
       const ctxCompounding = canvasCompounding.getContext('2d');
-      if (compoundingDragChart) {
-        compoundingDragChart.destroy();
-      }
+      if (compoundingDragChart) compoundingDragChart.destroy();
       compoundingDragChart = new Chart(ctxCompounding, {
-      type: 'line',
-      data: {
-        labels: yearLabels,
-        datasets: compoundingDatasets
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { boxWidth: 12, font: { size: 10, family: 'Inter' } }
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => `${context.dataset.label}: £${Math.round(context.raw).toLocaleString()} total fee drag`
+        type: 'line',
+        data: { labels: yearLabels, datasets: compoundingDatasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, family: 'Inter' } } },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: £${Math.round(ctx.raw).toLocaleString()} total fee drag`
+              }
             }
-          }
-        },
-        scales: {
-          y: {
-            ticks: {
-              callback: (value) => `£${Number(value).toLocaleString()}`
-            },
-            grid: { color: '#f1f5f9' }
           },
-          x: {
-            grid: { display: false }
+          scales: {
+            y: { ticks: { callback: (v) => `£${Number(v).toLocaleString()}` }, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false } }
           }
         }
-      }
-    });
-  }
+      });
+    }
 
     // 2. Fee Crossover Curve by Pot Size
     const crossoverData = PlatformCalculator.generateCrossoverData(inputs);
@@ -1034,64 +1252,45 @@ document.addEventListener('DOMContentLoaded', () => {
       label: ds.label,
       data: ds.data,
       borderColor: ds.borderColor,
-      backgroundColor: ds.borderColor + '15',
+      backgroundColor: ds.borderColor + '10',
       borderWidth: 2,
-      borderDash: ds.disqualified ? [4, 4] : [],
       tension: 0.25,
-      pointRadius: 3
+      pointRadius: 2
     }));
 
     const canvasCrossover = document.getElementById('chart-crossover');
     if (canvasCrossover) {
       const ctxCrossover = canvasCrossover.getContext('2d');
-      if (crossoverChart) {
-        crossoverChart.destroy();
-      }
+      if (crossoverChart) crossoverChart.destroy();
       crossoverChart = new Chart(ctxCrossover, {
-      type: 'line',
-      data: {
-        labels: crossoverData.labels,
-        datasets: crossoverDatasets
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { boxWidth: 12, font: { size: 10, family: 'Inter' } }
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => `${context.dataset.label}: £${Math.round(context.raw).toLocaleString()}/yr`
+        type: 'line',
+        data: { labels: crossoverData.labels, datasets: crossoverDatasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, family: 'Inter' } } },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: £${Math.round(ctx.raw).toLocaleString()}/yr`
+              }
             }
-          }
-        },
-        scales: {
-          y: {
-            ticks: {
-              callback: (value) => `£${Number(value).toLocaleString()}`
-            },
-            grid: { color: '#f1f5f9' }
           },
-          x: {
-            grid: { display: false }
+          scales: {
+            y: { ticks: { callback: (v) => `£${Number(v).toLocaleString()}` }, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false } }
           }
         }
-      }
-    });
-  }
+      });
+    }
   }
 
-  // -------------------------------------------------------------
-  // Live Visitor Counter Initialization
-  // -------------------------------------------------------------
+  // Visitor Counter Tracking
   function initVisitorCounter() {
     const badgeImg = document.getElementById('visitor-img-badge');
     const fallbackBox = document.getElementById('visitor-fallback-container');
     const fallbackCount = document.getElementById('visitor-fallback-count');
 
-    // 1. Session & local storage persistent visitor tracking
     const BASE_VISITS = 1248;
     let totalVisits = parseInt(localStorage.getItem('uk_platform_advisor_visits'), 10);
     if (isNaN(totalVisits) || totalVisits < BASE_VISITS) {
@@ -1109,30 +1308,23 @@ document.addEventListener('DOMContentLoaded', () => {
       fallbackCount.textContent = totalVisits.toLocaleString();
     }
 
-    // 2. Handle Image badge loading & ad-blocker fallback
     const showFallback = () => {
       if (badgeImg) badgeImg.classList.add('hidden');
       if (fallbackBox) {
         fallbackBox.classList.remove('hidden');
         fallbackBox.classList.add('flex');
       }
-      if (window.lucide) {
-        window.lucide.createIcons();
-      }
     };
 
     if (badgeImg) {
       badgeImg.addEventListener('error', showFallback);
       badgeImg.addEventListener('load', () => {
-        // If loaded successfully, ensure image is visible
         badgeImg.classList.remove('hidden');
         if (fallbackBox) {
           fallbackBox.classList.add('hidden');
           fallbackBox.classList.remove('flex');
         }
       });
-
-      // Safety timeout: if ad-blocker silences the request without firing onerror
       setTimeout(() => {
         if (!badgeImg.complete || badgeImg.naturalWidth === 0) {
           showFallback();
@@ -1143,9 +1335,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Initialize visitor counter
+  // Initialize Application
   initVisitorCounter();
-
-  // Initialize with 'balanced' preset
-  applyPreset('balanced');
+  syncAssetPillsAndSliders();
+  updateAllocSum();
+  updateTradingSummaryBadge();
+  updatePensionSummaryBadge();
+  updateHorizonSummaryBadge();
+  calculateAndRender();
 });

@@ -16,7 +16,7 @@ const PLATFORMS_DATA = [
     shortName: "AJ Bell",
     tagline: "Low capped fees for shares & ETFs with a full-service UK pension suite",
     logoColor: "#dc2626", // Red
-    badge: "Best for Shares & ETF Capped Custody",
+    badge: "Best for shares & ETF capped custody",
     rating: 4.6,
     trustScore: "4.8/5 (Trustpilot 10k+ reviews)",
     accountsSupported: {
@@ -106,7 +106,7 @@ const PLATFORMS_DATA = [
     shortName: "Interactive Investor (ii)",
     tagline: "Flat subscription pricing that beats percentage fees for mid-to-large portfolios",
     logoColor: "#0284c7", // Sky blue
-    badge: "Best Value for Portfolios Over £50,000",
+    badge: "Flat-fee pricing for larger portfolios",
     rating: 4.7,
     trustScore: "4.7/5 (Trustpilot 25k+ reviews)",
     accountsSupported: {
@@ -212,7 +212,7 @@ const PLATFORMS_DATA = [
     shortName: "Hargreaves Lansdown (HL)",
     tagline: "The UK's largest investment platform with gold-standard research and service",
     logoColor: "#1e3a8a", // Navy
-    badge: "Best for Premium Service & Free Fund Trades",
+    badge: "Premium service & fund dealing",
     rating: 4.5,
     trustScore: "4.2/5 (Trustpilot 12k+ reviews)",
     accountsSupported: {
@@ -302,7 +302,7 @@ const PLATFORMS_DATA = [
     shortName: "Trading 212",
     tagline: "Zero platform fee, zero dealing commission & ultra-low 0.15% FX for modern investors",
     logoColor: "#0284c7", // Bright Cyan/Blue
-    badge: "Lowest Cost Overall (Zero Commission)",
+    badge: "Zero-fee trading & fractional shares",
     rating: 4.7,
     trustScore: "4.6/5 (Trustpilot 30k+ reviews)",
     accountsSupported: {
@@ -381,7 +381,7 @@ const PLATFORMS_DATA = [
     shortName: "Fidelity",
     tagline: "Competitive tiered platform fees for fund investors with extensive global guidance",
     logoColor: "#15803d", // Green
-    badge: "Great for Large Portfolios & Fund Portfolios",
+    badge: "Funds & larger portfolios",
     rating: 4.4,
     trustScore: "4.1/5 (Trustpilot 5k+ reviews)",
     accountsSupported: {
@@ -469,7 +469,7 @@ const PLATFORMS_DATA = [
     shortName: "Vanguard",
     tagline: "The gold standard for low-cost passive index funds with a rock-bottom 0.15% fee",
     logoColor: "#991b1b", // Burgundy / Crimson
-    badge: "Lowest Cost for Passive Vanguard Index Funds",
+    badge: "Low-cost index funds & ETFs",
     rating: 4.6,
     trustScore: "4.2/5 (Trustpilot 4k+ reviews)",
     accountsSupported: {
