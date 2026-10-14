@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.lucide.createIcons();
   }
 
+  // State
+  let costViewMode = 'monthly'; // 'monthly' | 'annual'
+
   // DOM Elements
   const accountIsa = document.getElementById('account-isa');
   const accountSipp = document.getElementById('account-sipp');
@@ -662,10 +665,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Render Leaderboard Cards (Only completely compatible platforms)
+  // Render Leaderboard Cards (Only completely compatible platforms)
   function renderPlatformCards(rankedPlatforms) {
     platformCardsContainer.innerHTML = '';
 
-    // Render Live Compatibility Status Bar
+    const isMonthly = (costViewMode === 'monthly');
+
+    // Render Live Compatibility Status Bar with Monthly/Annual View Toggle
     const statusBar = document.getElementById('compatibility-status-bar');
     if (statusBar) {
       const compCount = rankedPlatforms.length;
@@ -677,17 +683,48 @@ document.addEventListener('DOMContentLoaded', () => {
             Showing ${compCount} platform${compCount === 1 ? '' : 's'} that completely satisfy your criteria
           </span>
         </div>
-        ${exclCount > 0 ? `
-          <span class="text-[11px] font-semibold text-slate-600 bg-slate-200/70 px-2.5 py-0.5 rounded-full">
-            ${exclCount} platform${exclCount === 1 ? '' : 's'} excluded
-          </span>
-        ` : `
-          <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-100/70 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-            <i data-lucide="check" class="w-3 h-3 text-emerald-600"></i>
-            <span>All platforms compatible</span>
-          </span>
-        `}
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- Toggle Monthly / Annual View -->
+          <div class="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-[11px] font-semibold text-slate-600 shadow-2xs">
+            <button id="toggle-view-monthly" class="px-2.5 py-1 rounded-md transition ${isMonthly ? 'bg-brand-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
+              Monthly View (/mo)
+            </button>
+            <button id="toggle-view-annual" class="px-2.5 py-1 rounded-md transition ${!isMonthly ? 'bg-brand-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
+              Annual View (/yr)
+            </button>
+          </div>
+          ${exclCount > 0 ? `
+            <span class="text-[11px] font-semibold text-slate-600 bg-slate-200/70 px-2.5 py-0.5 rounded-full">
+              ${exclCount} platform${exclCount === 1 ? '' : 's'} excluded
+            </span>
+          ` : `
+            <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-100/70 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+              <i data-lucide="check" class="w-3 h-3 text-emerald-600"></i>
+              <span>All platforms compatible</span>
+            </span>
+          `}
+        </div>
       `;
+
+      // Attach event listeners for Monthly/Annual toggle
+      const btnMonthly = document.getElementById('toggle-view-monthly');
+      const btnAnnual = document.getElementById('toggle-view-annual');
+      if (btnMonthly) {
+        btnMonthly.addEventListener('click', () => {
+          costViewMode = 'monthly';
+          renderPlatformCards(rankedPlatforms);
+          renderBreakdownTable(rankedPlatforms);
+          if (window.lucide) window.lucide.createIcons();
+        });
+      }
+      if (btnAnnual) {
+        btnAnnual.addEventListener('click', () => {
+          costViewMode = 'annual';
+          renderPlatformCards(rankedPlatforms);
+          renderBreakdownTable(rankedPlatforms);
+          if (window.lucide) window.lucide.createIcons();
+        });
+      }
     }
 
     if (rankedPlatforms.length === 0) {
@@ -702,6 +739,12 @@ document.addEventListener('DOMContentLoaded', () => {
       rankedPlatforms.forEach((result, idx) => {
         const p = result.platform;
         const isWinner = (idx === 0);
+
+        const monthlyCost = result.yearOneTotalFee / 12;
+        const monthlyPlatformFee = result.totalPlatformFee / 12;
+        const monthlyDealingFee = result.totalDealingFee / 12;
+        const monthlyRegularInv = result.regularInvestingFee / 12;
+        const monthlyFx = result.fxFee / 12;
 
         const card = document.createElement('div');
         card.className = `platform-card bg-white rounded-2xl border p-5 shadow-sm space-y-4 transition-all ${
@@ -725,13 +768,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Key reason bullet
         const keyReasonHtml = result.keyReasons && result.keyReasons.length ? `
-          <div class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-start gap-2">
+          <div class="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-start gap-2">
             <i data-lucide="sparkle" class="w-4 h-4 text-brand-600 shrink-0 mt-0.5"></i>
-            <span>${result.keyReasons[0].text}</span>
+            <span class="font-medium">${result.keyReasons[0].text}</span>
           </div>
         ` : '';
 
-        // Universe pills for platform card
+        // Universe pills for platform card (full text, no truncation)
         const assetKeys = [
           { key: 'ukShares', label: 'UK Shares' },
           { key: 'etfs', label: 'ETFs' },
@@ -746,15 +789,15 @@ document.addEventListener('DOMContentLoaded', () => {
           const allowed = perm ? perm.permitted : true;
           if (allowed) {
             return `
-              <div class="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-between" title="${perm?.detail || 'Allowed'}">
-                <span class="font-medium text-emerald-900 truncate">${a.label}</span>
+              <div class="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center gap-1.5 shadow-2xs" title="${perm?.detail || 'Allowed'}">
+                <span class="font-medium text-emerald-900 text-[11px] whitespace-nowrap">${a.label}</span>
                 <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
               </div>
             `;
           } else {
             return `
-              <div class="p-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-between" title="${perm?.detail || 'Not Permitted'}">
-                <span class="font-normal text-slate-400 line-through truncate">${a.label}</span>
+              <div class="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-400 flex items-center gap-1.5 shadow-2xs" title="${perm?.detail || 'Not Permitted'}">
+                <span class="font-normal text-slate-400 line-through text-[11px] whitespace-nowrap">${a.label}</span>
                 <i data-lucide="minus" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
               </div>
             `;
@@ -778,36 +821,40 @@ document.addEventListener('DOMContentLoaded', () => {
               <p class="text-xs text-slate-500">${p.tagline}</p>
             </div>
 
-            <div class="text-right sm:border-l sm:border-slate-100 sm:pl-4 min-w-[130px]">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">Year 1 Total Cost</span>
+            <div class="text-right sm:border-l sm:border-slate-100 sm:pl-4 min-w-[145px]">
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">${isMonthly ? 'Est. Monthly Cost' : 'Year 1 Total Cost'}</span>
               <div class="text-2xl font-black ${isWinner ? 'text-emerald-600' : 'text-slate-900'}">
-                ${formatGbp(result.yearOneTotalFee)}
+                ${formatGbp(isMonthly ? monthlyCost : result.yearOneTotalFee)} <span class="text-xs font-semibold text-slate-500">${isMonthly ? '/ mo' : '/ yr'}</span>
               </div>
               <span class="text-[11px] text-slate-500 block">
-                ${result.effectiveFeePct.toFixed(2)}% effective drag
+                ${isMonthly ? `${formatGbp(result.yearOneTotalFee)} / yr` : `${formatGbp(monthlyCost)} / mo`} (${result.effectiveFeePct.toFixed(2)}% drag)
               </span>
             </div>
           </div>
 
           ${keyReasonHtml}
 
-          <!-- Quick 4-box metrics -->
+          <!-- Quick 4-box metrics (Monthly with Annual reference) -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-xs">
             <div class="bg-slate-50 p-2 rounded-lg text-center">
               <span class="text-[10px] text-slate-400 font-bold uppercase block">Platform Fee</span>
-              <span class="font-bold text-slate-800">${formatGbp(result.totalPlatformFee)}</span>
+              <span class="font-bold text-slate-800">${formatGbp(isMonthly ? monthlyPlatformFee : result.totalPlatformFee)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
+              <span class="text-[10px] text-slate-400 block">${isMonthly ? `${formatGbp(result.totalPlatformFee)}/yr` : `${formatGbp(monthlyPlatformFee)}/mo`}</span>
             </div>
             <div class="bg-slate-50 p-2 rounded-lg text-center">
               <span class="text-[10px] text-slate-400 font-bold uppercase block">Dealing Fees</span>
-              <span class="font-bold text-slate-800">${formatGbp(result.totalDealingFee)}</span>
+              <span class="font-bold text-slate-800">${formatGbp(isMonthly ? monthlyDealingFee : result.totalDealingFee)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
+              <span class="text-[10px] text-slate-400 block">${isMonthly ? `${formatGbp(result.totalDealingFee)}/yr` : `${formatGbp(monthlyDealingFee)}/mo`}</span>
             </div>
             <div class="bg-slate-50 p-2 rounded-lg text-center">
               <span class="text-[10px] text-slate-400 font-bold uppercase block">Regular Inv.</span>
-              <span class="font-bold text-slate-800">${formatGbp(result.regularInvestingFee)}</span>
+              <span class="font-bold text-slate-800">${formatGbp(isMonthly ? monthlyRegularInv : result.regularInvestingFee)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
+              <span class="text-[10px] text-slate-400 block">${isMonthly ? `${formatGbp(result.regularInvestingFee)}/yr` : `${formatGbp(monthlyRegularInv)}/mo`}</span>
             </div>
             <div class="bg-slate-50 p-2 rounded-lg text-center">
               <span class="text-[10px] text-slate-400 font-bold uppercase block">FX Fees</span>
-              <span class="font-bold text-slate-800">${formatGbp(result.fxFee)}</span>
+              <span class="font-bold text-slate-800">${formatGbp(isMonthly ? monthlyFx : result.fxFee)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
+              <span class="text-[10px] text-slate-400 block">${isMonthly ? `${formatGbp(result.fxFee)}/yr` : `${formatGbp(monthlyFx)}/mo`}</span>
             </div>
           </div>
 
@@ -824,7 +871,7 @@ document.addEventListener('DOMContentLoaded', () => {
               </span>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1.5 text-[11px]">
+            <div class="flex flex-wrap gap-1.5 text-[11px]">
               ${universePills}
             </div>
           </div>
@@ -918,9 +965,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${ex.compatibility.disqualifiers.map(d => `<li>${d}</li>`).join('')}
                       </ul>
                     </div>
-                    <div class="text-right sm:border-l sm:border-slate-100 sm:pl-3 min-w-[110px]">
+                    <div class="text-right sm:border-l sm:border-slate-100 sm:pl-3 min-w-[120px]">
                       <span class="text-[10px] text-slate-400 uppercase font-semibold block">Indicative Cost</span>
-                      <span class="font-bold text-slate-500 line-through">${formatGbp(ex.yearOneTotalFee)}</span>
+                      <span class="font-bold text-slate-500 line-through">${formatGbp(isMonthly ? ex.yearOneTotalFee / 12 : ex.yearOneTotalFee)} <span class="text-[10px] font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
+                      <span class="text-[10px] text-slate-400 block">${isMonthly ? `${formatGbp(ex.yearOneTotalFee)}/yr` : `${formatGbp(ex.yearOneTotalFee / 12)}/mo`}</span>
                     </div>
                   </div>
                 `).join('')}
@@ -961,7 +1009,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <td class="py-3 px-3 text-right text-slate-700">${formatGbp(res.regularInvestingFee)}</td>
         <td class="py-3 px-3 text-right text-slate-700">${formatGbp(res.fxFee)}</td>
         <td class="py-3 px-4 text-right ${isWinner ? 'text-emerald-700 bg-emerald-100/50' : 'text-slate-900 bg-brand-50/30'} font-extrabold">
-          ${formatGbp(res.yearOneTotalFee)}
+          <div>${formatGbp(res.yearOneTotalFee)}</div>
+          <div class="text-[10px] text-slate-500 font-normal">${formatGbp(res.yearOneTotalFee / 12)}/mo</div>
         </td>
         <td class="py-3 px-4 text-right font-bold text-slate-800">
           ${formatGbpInt(res.fiveYearCost)}

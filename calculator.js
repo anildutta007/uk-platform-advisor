@@ -570,18 +570,6 @@
       });
     }
 
-    if (yearOneTotalFee === 0) {
-      keyReasons.push({
-        type: 'positive',
-        text: "£0 Total annual fees: completely free custody and trading."
-      });
-    } else {
-      keyReasons.push({
-        type: 'neutral',
-        text: `Estimated Year 1 total cost: £${yearOneTotalFee.toFixed(2)} (${((yearOneTotalFee / (avgYearOnePortfolio || 1)) * 100).toFixed(2)}% effective cost).`
-      });
-    }
-
     if (platform.id === 'interactive-investor') {
       if (avgYearOnePortfolio > 50000) {
         keyReasons.push({
@@ -600,16 +588,16 @@
         text: `Shares & ETF custody capped at £42/yr for ISA/GIA and £120/yr for SIPP. Full employer pension support.`
       });
     } else if (platform.id === 'hargreaves-lansdown') {
+      keyReasons.push({
+        type: 'positive',
+        text: `Gold-standard customer service with direct UK phone lines, top research and highest rated mobile app.`
+      });
       if (fundsPct > 0.5) {
         keyReasons.push({
           type: 'neutral',
           text: `Free dealing on all funds, though fund platform fee is uncapped at 0.45%. Shares in GIA have £0 platform fee.`
         });
       }
-      keyReasons.push({
-        type: 'positive',
-        text: `Gold-standard customer service with direct UK phone lines, top research and highest rated mobile app.`
-      });
     } else if (platform.id === 'trading-212') {
       keyReasons.push({
         type: 'positive',
@@ -624,6 +612,18 @@
       keyReasons.push({
         type: 'positive',
         text: `Tiered fee drops to 0.20% over £250k and 0% over £1m. Free fund trades and full SIPP drawdown.`
+      });
+    }
+
+    if (yearOneTotalFee === 0) {
+      keyReasons.push({
+        type: 'positive',
+        text: "£0 Total annual fees: completely free custody and trading."
+      });
+    } else {
+      keyReasons.push({
+        type: 'neutral',
+        text: `Estimated Year 1 total cost: £${yearOneTotalFee.toFixed(2)} (${((yearOneTotalFee / (avgYearOnePortfolio || 1)) * 100).toFixed(2)}% effective cost).`
       });
     }
 
