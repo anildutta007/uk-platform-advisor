@@ -104,15 +104,33 @@
     const avgSippPot = sippLump + (sippMonthly * 6);
     const avgGiaPot = giaLump + (giaMonthly * 6);
 
-    // Calculate asset portions
-    // Assets that qualify as "shares / exchange-traded" for capping purposes
-    const exchangeTradedPct = ((assetAllocation.ukSharesPct || 0) +
-      (assetAllocation.etfsPct || 0) +
-      (assetAllocation.investmentTrustsPct || 0) +
-      (assetAllocation.usStocksPct || 0) +
-      (assetAllocation.europeanStocksPct || 0)) / 100;
+    // Calculate asset portions with normalization to guarantee strict 100% total
+    const rawAllocSum = (Number(assetAllocation.ukSharesPct) || 0) +
+                        (Number(assetAllocation.etfsPct) || 0) +
+                        (Number(assetAllocation.fundsPct) || 0) +
+                        (Number(assetAllocation.investmentTrustsPct) || 0) +
+                        (Number(assetAllocation.usStocksPct) || 0) +
+                        (Number(assetAllocation.europeanStocksPct) || 0);
 
-    const fundsPct = (assetAllocation.fundsPct || 0) / 100;
+    const allocMultiplier = rawAllocSum > 0 ? (100 / rawAllocSum) : 1;
+
+    const normAlloc = {
+      ukSharesPct: (Number(assetAllocation.ukSharesPct) || 0) * allocMultiplier,
+      etfsPct: (Number(assetAllocation.etfsPct) || 0) * allocMultiplier,
+      fundsPct: (Number(assetAllocation.fundsPct) || 0) * allocMultiplier,
+      investmentTrustsPct: (Number(assetAllocation.investmentTrustsPct) || 0) * allocMultiplier,
+      usStocksPct: (Number(assetAllocation.usStocksPct) || 0) * allocMultiplier,
+      europeanStocksPct: (Number(assetAllocation.europeanStocksPct) || 0) * allocMultiplier
+    };
+
+    // Assets that qualify as "shares / exchange-traded" for capping purposes
+    const exchangeTradedPct = (normAlloc.ukSharesPct +
+      normAlloc.etfsPct +
+      normAlloc.investmentTrustsPct +
+      normAlloc.usStocksPct +
+      normAlloc.europeanStocksPct) / 100;
+
+    const fundsPct = normAlloc.fundsPct / 100;
 
     // 1. Calculate Platform / Custody Fee
     let isaPlatformFee = 0;
@@ -431,10 +449,28 @@
       }
     }
 
+    // Active Disallowed Investments for this Platform based on user allocation
+    const activeDisallowed = [];
+    if (normAlloc.ukSharesPct > 0 && !platform.universe.ukShares) {
+      activeDisallowed.push({ asset: 'UK Shares', label: 'Individual UK Shares', pct: Math.round(normAlloc.ukSharesPct), reason: 'Platform does not permit trading or holding single company UK shares' });
+    }
+    if (normAlloc.fundsPct > 0 && !platform.universe.funds) {
+      activeDisallowed.push({ asset: 'Mutual Funds / OEICs', label: 'Mutual Funds / Unit Trusts (OEICs)', pct: Math.round(normAlloc.fundsPct), reason: 'Platform does not support traditional mutual funds (ETFs only)' });
+    }
+    if (normAlloc.usStocksPct > 0 && !platform.universe.usStocks) {
+      activeDisallowed.push({ asset: 'US Stocks', label: 'US Single Stocks', pct: Math.round(normAlloc.usStocksPct), reason: 'Platform does not permit trading individual US stocks (Apple, Tesla, etc.)' });
+    }
+    if (normAlloc.europeanStocksPct > 0 && !platform.universe.europeanStocks) {
+      activeDisallowed.push({ asset: 'European Stocks', label: 'European Single Stocks', pct: Math.round(normAlloc.europeanStocksPct), reason: 'Direct continental European share dealing is not supported' });
+    }
+    if (normAlloc.investmentTrustsPct > 0 && !platform.universe.investmentTrusts) {
+      activeDisallowed.push({ asset: 'Investment Trusts', label: 'Investment Trusts', pct: Math.round(normAlloc.investmentTrustsPct), reason: 'Closed-end investment trusts are not supported' });
+    }
+
     // Rule: Investment Universe checks
-    const wantsOverseas = (assetAllocation.usStocksPct > 0 || assetAllocation.europeanStocksPct > 0);
-    const wantsUkShares = (assetAllocation.ukSharesPct > 0 || assetAllocation.investmentTrustsPct > 0);
-    const wantsFunds = (assetAllocation.fundsPct > 0);
+    const wantsOverseas = (normAlloc.usStocksPct > 0 || normAlloc.europeanStocksPct > 0);
+    const wantsUkShares = (normAlloc.ukSharesPct > 0 || normAlloc.investmentTrustsPct > 0);
+    const wantsFunds = (normAlloc.fundsPct > 0);
 
     if (platform.id === 'vanguard') {
       if (wantsUkShares || wantsOverseas) {
@@ -460,7 +496,7 @@
     }
 
     if (platform.id === 'fidelity') {
-      if (assetAllocation.europeanStocksPct > 0) {
+      if (normAlloc.europeanStocksPct > 0) {
         compatibility.warnings.push(
           "Fidelity UK offers US shares but has limited European direct single-stock dealing compared to dedicated stockbrokers."
         );
@@ -592,7 +628,11 @@
       tenYearLostGrowth: multiYearProjection[Math.min(9, multiYearProjection.length - 1)]?.cumulativeLostGrowth || 0,
       compatibility,
       suitabilityScore: score,
-      keyReasons
+      keyReasons,
+      notPermittedList: platform.notPermittedList || [],
+      notPermittedDetails: platform.notPermittedDetails || '',
+      investmentPermissions: platform.investmentPermissions || {},
+      activeDisallowed: activeDisallowed
     };
   }
 

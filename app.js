@@ -178,37 +178,143 @@ document.addEventListener('DOMContentLoaded', () => {
   syncInputs(sliderLumpSipp, lumpSipp);
   syncInputs(sliderLumpGia, lumpGia);
 
-  // Sync allocation percentages
-  const allocControls = [
-    { slider: allocUkShares, val: valUkShares },
-    { slider: allocEtfs, val: valEtfs },
-    { slider: allocFunds, val: valFunds },
-    { slider: allocIt, val: valIt },
-    { slider: allocUs, val: valUs },
-    { slider: allocEu, val: valEu }
+  // Allocation sliders with smart proportional auto-balance to keep total locked at 100%
+  const allocSliders = [
+    { id: 'ukShares', slider: allocUkShares, valEl: valUkShares, name: 'UK Shares' },
+    { id: 'etfs', slider: allocEtfs, valEl: valEtfs, name: 'ETFs' },
+    { id: 'funds', slider: allocFunds, valEl: valFunds, name: 'Funds / OEICs' },
+    { id: 'it', slider: allocIt, valEl: valIt, name: 'Investment Trusts' },
+    { id: 'us', slider: allocUs, valEl: valUs, name: 'US Stocks' },
+    { id: 'eu', slider: allocEu, valEl: valEu, name: 'European Stocks' }
   ];
 
-  allocControls.forEach(item => {
+  let isAutoBalancing = false;
+
+  function rebalanceAllocSliders(changedId) {
+    if (isAutoBalancing) return;
+    isAutoBalancing = true;
+
+    const changedItem = allocSliders.find(item => item.id === changedId);
+    let newVal = Math.min(100, Math.max(0, parseInt(changedItem.slider.value, 10) || 0));
+    changedItem.slider.value = newVal;
+
+    const others = allocSliders.filter(item => item.id !== changedId);
+    const remainingBudget = 100 - newVal;
+    const currentOtherSum = others.reduce((acc, item) => acc + (parseInt(item.slider.value, 10) || 0), 0);
+
+    if (currentOtherSum > 0) {
+      let allocatedSoFar = 0;
+      others.forEach((item, index) => {
+        if (index === others.length - 1) {
+          // Last other item absorbs the exact rounding difference to strictly guarantee 100%
+          const finalVal = Math.max(0, remainingBudget - allocatedSoFar);
+          item.slider.value = finalVal;
+        } else {
+          const proportion = (parseInt(item.slider.value, 10) || 0) / currentOtherSum;
+          const scaledVal = Math.round(proportion * remainingBudget);
+          item.slider.value = scaledVal;
+          allocatedSoFar += scaledVal;
+        }
+      });
+    } else if (remainingBudget > 0) {
+      // If all other sliders were 0, put the remainder into ETFs (or first available)
+      const defaultTarget = others.find(o => o.id === 'etfs') || others[0];
+      defaultTarget.slider.value = remainingBudget;
+    }
+
+    // Refresh all label texts
+    allocSliders.forEach(item => {
+      item.valEl.textContent = `${item.slider.value}%`;
+    });
+
+    updateAllocSum();
+    calculateAndRender();
+    isAutoBalancing = false;
+  }
+
+  allocSliders.forEach(item => {
     item.slider.addEventListener('input', () => {
-      item.val.textContent = `${item.slider.value}%`;
-      updateAllocSum();
-      calculateAndRender();
+      rebalanceAllocSliders(item.id);
     });
   });
 
   function updateAllocSum() {
-    const sum = Number(allocUkShares.value) +
-                Number(allocEtfs.value) +
-                Number(allocFunds.value) +
-                Number(allocIt.value) +
-                Number(allocUs.value) +
-                Number(allocEu.value);
-    allocSumDisplay.textContent = `Total: ${sum}%`;
-    if (sum === 100) {
-      allocSumDisplay.className = 'text-[11px] text-emerald-600 font-bold';
-    } else {
-      allocSumDisplay.className = 'text-[11px] text-amber-600 font-bold';
+    const sum = allocSliders.reduce((acc, item) => acc + (parseInt(item.slider.value, 10) || 0), 0);
+    const allocSumText = document.getElementById('alloc-sum-text');
+    if (allocSumText) {
+      allocSumText.textContent = `Total: ${sum}%`;
     }
+    const allocSumDisplayElem = document.getElementById('alloc-sum-display');
+    if (allocSumDisplayElem) {
+      if (sum === 100) {
+        allocSumDisplayElem.className = 'text-xs px-2.5 py-0.5 rounded-full font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 shadow-sm';
+      } else {
+        allocSumDisplayElem.className = 'text-xs px-2.5 py-0.5 rounded-full font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 shadow-sm';
+      }
+    }
+  }
+
+  // Quick allocation presets
+  const ALLOC_PRESETS = {
+    balanced: { uk: 25, etf: 35, fund: 20, it: 10, us: 10, eu: 0 },
+    'etfs-only': { uk: 0, etf: 100, fund: 0, it: 0, us: 0, eu: 0 },
+    'funds-only': { uk: 0, etf: 0, fund: 100, it: 0, us: 0, eu: 0 },
+    'shares-etfs': { uk: 50, etf: 50, fund: 0, it: 0, us: 0, eu: 0 },
+    'global-stocks': { uk: 30, etf: 10, fund: 0, it: 0, us: 40, eu: 20 }
+  };
+
+  function applyAllocPreset(presetKey) {
+    const p = ALLOC_PRESETS[presetKey];
+    if (!p) return;
+
+    isAutoBalancing = true;
+    allocUkShares.value = p.uk;
+    allocEtfs.value = p.etf;
+    allocFunds.value = p.fund;
+    allocIt.value = p.it;
+    allocUs.value = p.us;
+    allocEu.value = p.eu;
+
+    allocSliders.forEach(item => {
+      item.valEl.textContent = `${item.slider.value}%`;
+    });
+
+    updateAllocSum();
+    calculateAndRender();
+    isAutoBalancing = false;
+  }
+
+  document.querySelectorAll('.alloc-preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyAllocPreset(btn.dataset.alloc);
+    });
+  });
+
+  const btnBalance100 = document.getElementById('btn-balance-100');
+  if (btnBalance100) {
+    btnBalance100.addEventListener('click', () => {
+      const sum = allocSliders.reduce((acc, item) => acc + (parseInt(item.slider.value, 10) || 0), 0);
+      if (sum === 100) return;
+      if (sum === 0) {
+        applyAllocPreset('balanced');
+        return;
+      }
+      isAutoBalancing = true;
+      let allocatedSoFar = 0;
+      allocSliders.forEach((item, index) => {
+        if (index === allocSliders.length - 1) {
+          item.slider.value = Math.max(0, 100 - allocatedSoFar);
+        } else {
+          const scaled = Math.round(((parseInt(item.slider.value, 10) || 0) / sum) * 100);
+          item.slider.value = scaled;
+          allocatedSoFar += scaled;
+        }
+        item.valEl.textContent = `${item.slider.value}%`;
+      });
+      updateAllocSum();
+      calculateAndRender();
+      isAutoBalancing = false;
+    });
   }
 
   // Trading frequency sliders
@@ -467,6 +573,9 @@ document.addEventListener('DOMContentLoaded', () => {
           `;
         }
         if (winnerLink) winnerLink.href = winner.platform.officialUrl;
+
+        // Render winner permissions & not-permitted callout
+        renderWinnerPermissions(winner);
       }
 
       // 2. Render Platform Leaderboard Cards
@@ -485,6 +594,108 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       console.error('Calculation and rendering failed:', err);
     }
+  }
+
+  // Render Winner Investment Permissions & Not-Permitted Callouts
+  function renderWinnerPermissions(winner) {
+    const container = document.getElementById('winner-permissions-container');
+    if (!container) return;
+
+    const p = winner.platform;
+    const perms = p.investmentPermissions || {};
+    const notPermList = p.notPermittedList || [];
+    const notPermDetails = p.notPermittedDetails || '';
+    const activeDisallowed = winner.activeDisallowed || [];
+
+    const assetKeys = [
+      { key: 'ukShares', label: 'UK Shares' },
+      { key: 'etfs', label: 'ETFs' },
+      { key: 'funds', label: 'Funds / OEICs' },
+      { key: 'investmentTrusts', label: 'Inv. Trusts' },
+      { key: 'usStocks', label: 'US Stocks' },
+      { key: 'europeanStocks', label: 'EU Stocks' }
+    ];
+
+    const pillsHtml = assetKeys.map(asset => {
+      const isAllowed = perms[asset.key]?.permitted ?? true;
+      if (isAllowed) {
+        return `
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 shadow-sm">
+            <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>${asset.label}</span>
+          </span>
+        `;
+      } else {
+        return `
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-red-950/90 text-red-300 border border-red-500/50 shadow-sm">
+            <i data-lucide="x" class="w-3.5 h-3.5 text-red-400"></i>
+            <span class="line-through decoration-red-400">${asset.label}</span>
+          </span>
+        `;
+      }
+    }).join('');
+
+    let conflictHtml = '';
+    if (activeDisallowed.length > 0) {
+      conflictHtml = `
+        <div class="p-3 rounded-xl bg-amber-950/80 border border-amber-500/50 text-amber-200 space-y-1">
+          <div class="font-bold flex items-center gap-1.5 text-amber-300 text-xs">
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+            <span>Warning: Allocation Conflict on ${p.shortName}</span>
+          </div>
+          <p class="text-[11px] text-amber-200/90">
+            You allocated funds to: ${activeDisallowed.map(d => `<span class="font-semibold text-amber-300 underline">${d.asset} (${d.pct}%)</span>`).join(', ')}, but <strong>${p.shortName} does not permit this investment type</strong>.
+          </p>
+        </div>
+      `;
+    }
+
+    let notPermittedHtml = '';
+    if (notPermList.length > 0) {
+      notPermittedHtml = `
+        <div class="p-3 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-red-300 flex items-center gap-1.5 text-xs">
+              <i data-lucide="ban" class="w-4 h-4 text-red-400"></i>
+              <span>NOT Permitted on ${p.name}:</span>
+            </span>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-red-900/60 border border-red-700/60 text-red-300">Platform Restrictions</span>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            ${notPermList.map(item => `
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-900/40 border border-red-700/50 text-red-200 text-[11px] font-medium">
+                <i data-lucide="x-circle" class="w-3 h-3 text-red-400"></i>
+                <span>${item}</span>
+              </span>
+            `).join('')}
+          </div>
+          ${notPermDetails ? `<p class="text-[11px] text-red-300/90 pt-0.5 leading-relaxed">${notPermDetails}</p>` : ''}
+        </div>
+      `;
+    } else {
+      notPermittedHtml = `
+        <div class="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 flex items-center gap-2">
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+          <span class="text-[11px] text-emerald-300">
+            <strong>Full Open Architecture:</strong> All major asset classes (UK Shares, ETFs, Funds/OEICs, Investment Trusts, US & European Stocks) are permitted.
+          </span>
+        </div>
+      `;
+    }
+
+    container.innerHTML = `
+      <div class="space-y-2.5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-slate-300">
+          <span class="font-bold uppercase tracking-wider text-slate-400">Investment Universe Permissions for ${p.shortName}:</span>
+          <span class="text-slate-400 text-[10px]">Green = Allowed | Red = Restricted</span>
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          ${pillsHtml}
+        </div>
+        ${conflictHtml}
+        ${notPermittedHtml}
+      </div>
+    `;
   }
 
   // Render Leaderboard Cards
@@ -559,6 +770,81 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       ` : '';
 
+      // Universe pills for platform card
+      const assetKeys = [
+        { key: 'ukShares', label: 'UK Shares' },
+        { key: 'etfs', label: 'ETFs' },
+        { key: 'funds', label: 'Funds / OEICs' },
+        { key: 'investmentTrusts', label: 'Inv. Trusts' },
+        { key: 'usStocks', label: 'US Stocks' },
+        { key: 'europeanStocks', label: 'EU Stocks' }
+      ];
+
+      const universePills = assetKeys.map(a => {
+        const perm = p.investmentPermissions && p.investmentPermissions[a.key];
+        const allowed = perm ? perm.permitted : true;
+        if (allowed) {
+          return `
+            <div class="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-between" title="${perm?.detail || 'Allowed'}">
+              <span class="font-medium text-emerald-900 truncate">${a.label}</span>
+              <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="p-1.5 rounded-lg bg-red-50 border border-red-300 flex items-center justify-between" title="${perm?.detail || 'Not Permitted'}">
+              <span class="font-semibold text-red-800 line-through truncate">${a.label}</span>
+              <i data-lucide="x" class="w-3.5 h-3.5 text-red-600 shrink-0"></i>
+            </div>
+          `;
+        }
+      }).join('');
+
+      // Not Permitted Box
+      let notPermittedCardHtml = '';
+      if (p.notPermittedList && p.notPermittedList.length > 0) {
+        notPermittedCardHtml = `
+          <div class="p-2.5 rounded-lg bg-red-50/80 border border-red-200 text-red-900 space-y-1">
+            <span class="font-bold flex items-center gap-1 text-[11px] text-red-700">
+              <i data-lucide="ban" class="w-3.5 h-3.5 text-red-600"></i>
+              <span>NOT PERMITTED ON THIS PLATFORM:</span>
+            </span>
+            <div class="flex flex-wrap gap-1">
+              ${p.notPermittedList.map(item => `
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-100 text-red-800 border border-red-200 font-semibold text-[10px]">
+                  <i data-lucide="x-circle" class="w-3 h-3 text-red-600"></i>
+                  <span>${item}</span>
+                </span>
+              `).join('')}
+            </div>
+            ${p.notPermittedDetails ? `<p class="text-[10px] text-red-700 pt-0.5 leading-snug">${p.notPermittedDetails}</p>` : ''}
+          </div>
+        `;
+      } else {
+        notPermittedCardHtml = `
+          <div class="text-[11px] text-emerald-800 bg-emerald-50/60 p-2 rounded-lg border border-emerald-100 flex items-center gap-1.5">
+            <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
+            <span>Full open architecture: you can trade all 6 major investment asset classes on ${p.shortName}.</span>
+          </div>
+        `;
+      }
+
+      // Active conflict box
+      let activeConflictCardHtml = '';
+      if (result.activeDisallowed && result.activeDisallowed.length > 0) {
+        activeConflictCardHtml = `
+          <div class="p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 space-y-1">
+            <span class="font-bold flex items-center gap-1 text-[11px] text-amber-800">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-600"></i>
+              <span>Your Portfolio Contains Disallowed Assets:</span>
+            </span>
+            <p class="text-[10px] text-amber-800">
+              You selected: ${result.activeDisallowed.map(d => `<strong>${d.asset} (${d.pct}%)</strong>`).join(', ')}. ${p.shortName} cannot execute or hold these holdings.
+            </p>
+          </div>
+        `;
+      }
+
       card.innerHTML = `
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div class="space-y-1">
@@ -604,6 +890,38 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="text-[10px] text-slate-400 font-bold uppercase block">FX Fees</span>
             <span class="font-bold text-slate-800">${formatGbp(result.fxFee)}</span>
           </div>
+        </div>
+
+        <!-- Investment Universe Permissions & Restrictions -->
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2.5 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
+              <i data-lucide="layers" class="w-4 h-4 text-brand-600"></i>
+              <span>Investment Universe Permissions</span>
+            </span>
+            ${p.notPermittedList && p.notPermittedList.length > 0 ? `
+              <span class="text-[10px] font-bold text-red-700 bg-red-100 border border-red-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <i data-lucide="alert-circle" class="w-3 h-3 text-red-600"></i>
+                <span>${p.notPermittedList.length} Restriction${p.notPermittedList.length > 1 ? 's' : ''}</span>
+              </span>
+            ` : `
+              <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <i data-lucide="check" class="w-3 h-3 text-emerald-600"></i>
+                <span>Full Open Architecture</span>
+              </span>
+            `}
+          </div>
+
+          <!-- 6-pill permission badges -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1.5 text-[11px]">
+            ${universePills}
+          </div>
+
+          <!-- NOT PERMITTED Section -->
+          ${notPermittedCardHtml}
+
+          <!-- Active Disallowed Warning -->
+          ${activeConflictCardHtml}
         </div>
 
         <!-- Accordion Toggle for Detailed Specs -->

@@ -32,6 +32,16 @@ const PLATFORMS_DATA = [
       usStocks: true,
       europeanStocks: true
     },
+    investmentPermissions: {
+      ukShares: { permitted: true, label: "UK Shares", detail: "Full London Stock Exchange (FTSE 100, 250, Small Cap, AIM)" },
+      etfs: { permitted: true, label: "ETFs", detail: "Broad range of UK and international UCITS ETFs" },
+      funds: { permitted: true, label: "Mutual Funds / OEICs", detail: "Over 2,000+ unit trusts & mutual funds" },
+      investmentTrusts: { permitted: true, label: "Investment Trusts", detail: "UK closed-end funds and REITs" },
+      usStocks: { permitted: true, label: "US Stocks", detail: "Direct trading on NYSE & NASDAQ" },
+      europeanStocks: { permitted: true, label: "European Stocks", detail: "Direct trading on Euronext, Frankfurt, etc." }
+    },
+    notPermittedList: [],
+    notPermittedDetails: "All 6 major investment categories are fully permitted on AJ Bell.",
     custodyFeeModel: {
       type: "percentage_with_caps",
       sharesRate: 0.0025, // 0.25%
@@ -112,6 +122,16 @@ const PLATFORMS_DATA = [
       usStocks: true,
       europeanStocks: true
     },
+    investmentPermissions: {
+      ukShares: { permitted: true, label: "UK Shares", detail: "Full London Stock Exchange (main market, AIM)" },
+      etfs: { permitted: true, label: "ETFs", detail: "Extensive selection of UCITS ETFs" },
+      funds: { permitted: true, label: "Mutual Funds / OEICs", detail: "Over 4,000+ unit trusts & OEICs" },
+      investmentTrusts: { permitted: true, label: "Investment Trusts", detail: "Complete range of UK investment trusts" },
+      usStocks: { permitted: true, label: "US Stocks", detail: "Direct trading with multi-currency holding (USD)" },
+      europeanStocks: { permitted: true, label: "European Stocks", detail: "European exchanges with multi-currency (EUR)" }
+    },
+    notPermittedList: [],
+    notPermittedDetails: "All 6 major investment categories are fully permitted on Interactive Investor.",
     custodyFeeModel: {
       type: "flat_subscription",
       plans: {
@@ -208,6 +228,16 @@ const PLATFORMS_DATA = [
       usStocks: true,
       europeanStocks: true
     },
+    investmentPermissions: {
+      ukShares: { permitted: true, label: "UK Shares", detail: "Broadest UK stock universe (main market, AIM, bonds)" },
+      etfs: { permitted: true, label: "ETFs", detail: "Full range of UK and global UCITS ETFs" },
+      funds: { permitted: true, label: "Mutual Funds / OEICs", detail: "Over 3,000+ unit trusts & OEICs (£0 dealing fees)" },
+      investmentTrusts: { permitted: true, label: "Investment Trusts", detail: "Comprehensive UK closed-end funds & REITs" },
+      usStocks: { permitted: true, label: "US Stocks", detail: "Direct trading on NYSE & NASDAQ" },
+      europeanStocks: { permitted: true, label: "European Stocks", detail: "Direct dealing on major European exchanges" }
+    },
+    notPermittedList: [],
+    notPermittedDetails: "All 6 major investment categories are fully permitted on Hargreaves Lansdown.",
     custodyFeeModel: {
       type: "percentage_hybrid",
       sharesRate: 0.0045, // 0.45%
@@ -288,6 +318,18 @@ const PLATFORMS_DATA = [
       usStocks: true,
       europeanStocks: true
     },
+    investmentPermissions: {
+      ukShares: { permitted: true, label: "UK Shares", detail: "Over 2,500+ UK stocks with £0 commission" },
+      etfs: { permitted: true, label: "ETFs", detail: "Over 2,000+ UCITS ETFs at 0% commission" },
+      funds: { permitted: false, label: "Mutual Funds / OEICs", detail: "NOT PERMITTED - No traditional Unit Trusts or OEICs" },
+      investmentTrusts: { permitted: true, label: "Investment Trusts", detail: "UK Investment Trusts & REITs supported" },
+      usStocks: { permitted: true, label: "US Stocks", detail: "Direct trading at 0% commission & low 0.15% FX" },
+      europeanStocks: { permitted: true, label: "European Stocks", detail: "German, French, Dutch stocks supported" }
+    },
+    notPermittedList: [
+      "Mutual Funds / Unit Trusts (OEICs)"
+    ],
+    notPermittedDetails: "Trading 212 strictly supports exchange-traded securities (stocks, ETFs, and REITs). Traditional mutual funds / OEICs / unit trusts (e.g. Fundsmith, Vanguard LifeStrategy OEIC fund, L&G Global funds) CANNOT be bought or held. Investors must use equivalent UCITS ETFs instead.",
     custodyFeeModel: {
       type: "zero_fee",
       rate: 0.0000,
@@ -355,6 +397,18 @@ const PLATFORMS_DATA = [
       usStocks: true,
       europeanStocks: false // Fidelity UK has limited European direct single shares compared to US
     },
+    investmentPermissions: {
+      ukShares: { permitted: true, label: "UK Shares", detail: "UK equities and investment trusts" },
+      etfs: { permitted: true, label: "ETFs", detail: "Broad range of London-listed UCITS ETFs" },
+      funds: { permitted: true, label: "Mutual Funds / OEICs", detail: "Over 2,500+ mutual funds (£0 dealing fees)" },
+      investmentTrusts: { permitted: true, label: "Investment Trusts", detail: "Supported closed-end investment trusts" },
+      usStocks: { permitted: true, label: "US Stocks", detail: "Direct trading in NYSE & NASDAQ equities" },
+      europeanStocks: { permitted: false, label: "European Single Stocks", detail: "NOT PERMITTED - Direct continental share dealing not supported" }
+    },
+    notPermittedList: [
+      "European Single Stocks (Direct Dealing)"
+    ],
+    notPermittedDetails: "Direct single-share trading on Continental European exchanges is NOT supported on Fidelity UK retail accounts. European exposure must be accessed through mutual funds or ETFs.",
     custodyFeeModel: {
       type: "percentage_tiered",
       // If holding only shares/ETFs: 0.35% capped at £90/year across ISA/GIA, or £45/yr with regular savings
@@ -431,6 +485,22 @@ const PLATFORMS_DATA = [
       usStocks: false, // NO individual US stocks!
       europeanStocks: false // NO individual European stocks!
     },
+    investmentPermissions: {
+      ukShares: { permitted: false, label: "UK Shares", detail: "NOT PERMITTED - No single company stocks (FTSE shares, AIM)" },
+      etfs: { permitted: true, label: "ETFs", detail: "Vanguard UCITS ETFs only (e.g. S&P 500 VUSA, All-World VWRL)" },
+      funds: { permitted: true, label: "Mutual Funds / OEICs", detail: "Vanguard Index Funds only (e.g. LifeStrategy, Global All Cap)" },
+      investmentTrusts: { permitted: false, label: "Investment Trusts", detail: "NOT PERMITTED - No closed-end investment trusts" },
+      usStocks: { permitted: false, label: "US Stocks", detail: "NOT PERMITTED - No individual US stocks (Apple, Tesla, Microsoft, etc.)" },
+      europeanStocks: { permitted: false, label: "European Stocks", detail: "NOT PERMITTED - No individual European stocks" }
+    },
+    notPermittedList: [
+      "Individual UK Shares",
+      "US Single Stocks",
+      "European Single Stocks",
+      "Investment Trusts",
+      "Non-Vanguard / Third-Party Mutual Funds"
+    ],
+    notPermittedDetails: "Vanguard UK Investor strictly restricts investments to its own proprietary Vanguard funds and ETFs (~85 funds total). You CANNOT buy any single company shares (Apple, Tesla, Rolls-Royce, etc.), investment trusts, or competitor funds (e.g. Fundsmith, Baillie Gifford).",
     custodyFeeModel: {
       type: "percentage_capped_flat",
       rate: 0.0015, // 0.15% across all accounts combined
