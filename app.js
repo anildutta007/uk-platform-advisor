@@ -27,6 +27,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const monthlyGia = document.getElementById('monthly-gia');
   const totalMonthlyDisplay = document.getElementById('total-monthly-display');
 
+  // Asset Checkboxes and Cards
+  const chkUkShares = document.getElementById('chk-uk-shares');
+  const chkEtfs = document.getElementById('chk-etfs');
+  const chkFunds = document.getElementById('chk-funds');
+  const chkIt = document.getElementById('chk-it');
+  const chkUs = document.getElementById('chk-us');
+  const chkEu = document.getElementById('chk-eu');
+
+  const cardUkShares = document.getElementById('card-chk-ukShares');
+  const cardEtfs = document.getElementById('card-chk-etfs');
+  const cardFunds = document.getElementById('card-chk-funds');
+  const cardIt = document.getElementById('card-chk-investmentTrusts');
+  const cardUs = document.getElementById('card-chk-usStocks');
+  const cardEu = document.getElementById('card-chk-europeanStocks');
+
+  const rowUkShares = document.getElementById('slider-row-ukShares');
+  const rowEtfs = document.getElementById('slider-row-etfs');
+  const rowFunds = document.getElementById('slider-row-funds');
+  const rowIt = document.getElementById('slider-row-investmentTrusts');
+  const rowUs = document.getElementById('slider-row-usStocks');
+  const rowEu = document.getElementById('slider-row-europeanStocks');
+
   // Asset Allocations
   const allocUkShares = document.getElementById('alloc-uk-shares');
   const valUkShares = document.getElementById('val-uk-shares');
@@ -178,68 +200,50 @@ document.addEventListener('DOMContentLoaded', () => {
   syncInputs(sliderLumpSipp, lumpSipp);
   syncInputs(sliderLumpGia, lumpGia);
 
-  // Allocation sliders with smart proportional auto-balance to keep total locked at 100%
-  const allocSliders = [
-    { id: 'ukShares', slider: allocUkShares, valEl: valUkShares, name: 'UK Shares' },
-    { id: 'etfs', slider: allocEtfs, valEl: valEtfs, name: 'ETFs' },
-    { id: 'funds', slider: allocFunds, valEl: valFunds, name: 'Funds / OEICs' },
-    { id: 'it', slider: allocIt, valEl: valIt, name: 'Investment Trusts' },
-    { id: 'us', slider: allocUs, valEl: valUs, name: 'US Stocks' },
-    { id: 'eu', slider: allocEu, valEl: valEu, name: 'European Stocks' }
+  // Asset items definition tying checkboxes, cards, row containers and sliders
+  const ASSET_ITEMS = [
+    { key: 'ukShares', chk: chkUkShares, card: cardUkShares, row: rowUkShares, slider: allocUkShares, valEl: valUkShares, name: 'UK Shares' },
+    { key: 'etfs', chk: chkEtfs, card: cardEtfs, row: rowEtfs, slider: allocEtfs, valEl: valEtfs, name: 'ETFs' },
+    { key: 'funds', chk: chkFunds, card: cardFunds, row: rowFunds, slider: allocFunds, valEl: valFunds, name: 'Funds / OEICs' },
+    { key: 'investmentTrusts', chk: chkIt, card: cardIt, row: rowIt, slider: allocIt, valEl: valIt, name: 'Investment Trusts' },
+    { key: 'usStocks', chk: chkUs, card: cardUs, row: rowUs, slider: allocUs, valEl: valUs, name: 'US Stocks' },
+    { key: 'europeanStocks', chk: chkEu, card: cardEu, row: rowEu, slider: allocEu, valEl: valEu, name: 'European Stocks' }
   ];
 
   let isAutoBalancing = false;
 
-  function rebalanceAllocSliders(changedId) {
-    if (isAutoBalancing) return;
-    isAutoBalancing = true;
-
-    const changedItem = allocSliders.find(item => item.id === changedId);
-    let newVal = Math.min(100, Math.max(0, parseInt(changedItem.slider.value, 10) || 0));
-    changedItem.slider.value = newVal;
-
-    const others = allocSliders.filter(item => item.id !== changedId);
-    const remainingBudget = 100 - newVal;
-    const currentOtherSum = others.reduce((acc, item) => acc + (parseInt(item.slider.value, 10) || 0), 0);
-
-    if (currentOtherSum > 0) {
-      let allocatedSoFar = 0;
-      others.forEach((item, index) => {
-        if (index === others.length - 1) {
-          // Last other item absorbs the exact rounding difference to strictly guarantee 100%
-          const finalVal = Math.max(0, remainingBudget - allocatedSoFar);
-          item.slider.value = finalVal;
+  function syncAssetCardsAndSliders() {
+    ASSET_ITEMS.forEach(item => {
+      if (!item.chk) return;
+      const isChecked = item.chk.checked;
+      if (item.row) {
+        if (isChecked) {
+          item.row.classList.remove('hidden');
         } else {
-          const proportion = (parseInt(item.slider.value, 10) || 0) / currentOtherSum;
-          const scaledVal = Math.round(proportion * remainingBudget);
-          item.slider.value = scaledVal;
-          allocatedSoFar += scaledVal;
+          item.row.classList.add('hidden');
         }
-      });
-    } else if (remainingBudget > 0) {
-      // If all other sliders were 0, put the remainder into ETFs (or first available)
-      const defaultTarget = others.find(o => o.id === 'etfs') || others[0];
-      defaultTarget.slider.value = remainingBudget;
-    }
-
-    // Refresh all label texts
-    allocSliders.forEach(item => {
-      item.valEl.textContent = `${item.slider.value}%`;
+      }
+      if (item.card) {
+        if (isChecked) {
+          item.card.className = 'asset-card flex items-start gap-2 p-2.5 rounded-xl border border-brand-500 bg-brand-50/50 ring-1 ring-brand-500 cursor-pointer transition select-none';
+        } else {
+          item.card.className = 'asset-card flex items-start gap-2 p-2.5 rounded-xl border border-slate-200 bg-white hover:border-brand-400 cursor-pointer transition select-none';
+        }
+      }
+      if (!isChecked && item.slider && item.valEl) {
+        item.slider.value = 0;
+        item.valEl.textContent = '0%';
+      }
     });
-
-    updateAllocSum();
-    calculateAndRender();
-    isAutoBalancing = false;
   }
 
-  allocSliders.forEach(item => {
-    item.slider.addEventListener('input', () => {
-      rebalanceAllocSliders(item.id);
-    });
-  });
+  function getActiveAssetItems() {
+    return ASSET_ITEMS.filter(item => item.chk && item.chk.checked);
+  }
 
   function updateAllocSum() {
-    const sum = allocSliders.reduce((acc, item) => acc + (parseInt(item.slider.value, 10) || 0), 0);
+    const active = getActiveAssetItems();
+    const sum = active.reduce((acc, item) => acc + (parseInt(item.slider.value, 10) || 0), 0);
     const allocSumText = document.getElementById('alloc-sum-text');
     if (allocSumText) {
       allocSumText.textContent = `Total: ${sum}%`;
@@ -254,13 +258,123 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function equalSplitActiveAssets() {
+    const active = getActiveAssetItems();
+    if (active.length === 0) return;
+
+    isAutoBalancing = true;
+    const base = Math.floor(100 / active.length);
+    let allocatedSoFar = 0;
+
+    active.forEach((item, index) => {
+      if (index === active.length - 1) {
+        item.slider.value = Math.max(0, 100 - allocatedSoFar);
+      } else {
+        item.slider.value = base;
+        allocatedSoFar += base;
+      }
+      item.valEl.textContent = `${item.slider.value}%`;
+    });
+
+    updateAllocSum();
+    calculateAndRender();
+    isAutoBalancing = false;
+  }
+
+  function rebalanceAllocSliders(changedKey) {
+    if (isAutoBalancing) return;
+    isAutoBalancing = true;
+
+    const active = getActiveAssetItems();
+    const changedItem = active.find(item => item.key === changedKey);
+    if (!changedItem) {
+      isAutoBalancing = false;
+      return;
+    }
+
+    if (active.length === 1) {
+      changedItem.slider.value = 100;
+      changedItem.valEl.textContent = '100%';
+      updateAllocSum();
+      calculateAndRender();
+      isAutoBalancing = false;
+      return;
+    }
+
+    let newVal = Math.min(100, Math.max(0, parseInt(changedItem.slider.value, 10) || 0));
+    changedItem.slider.value = newVal;
+
+    const others = active.filter(item => item.key !== changedKey);
+    const remainingBudget = 100 - newVal;
+    const currentOtherSum = others.reduce((acc, item) => acc + (parseInt(item.slider.value, 10) || 0), 0);
+
+    if (currentOtherSum > 0) {
+      let allocatedSoFar = 0;
+      others.forEach((item, index) => {
+        if (index === others.length - 1) {
+          item.slider.value = Math.max(0, remainingBudget - allocatedSoFar);
+        } else {
+          const prop = (parseInt(item.slider.value, 10) || 0) / currentOtherSum;
+          const scaled = Math.round(prop * remainingBudget);
+          item.slider.value = scaled;
+          allocatedSoFar += scaled;
+        }
+        item.valEl.textContent = `${item.slider.value}%`;
+      });
+    } else if (remainingBudget > 0) {
+      const base = Math.floor(remainingBudget / others.length);
+      let allocatedSoFar = 0;
+      others.forEach((item, index) => {
+        if (index === others.length - 1) {
+          item.slider.value = Math.max(0, remainingBudget - allocatedSoFar);
+        } else {
+          item.slider.value = base;
+          allocatedSoFar += base;
+        }
+        item.valEl.textContent = `${item.slider.value}%`;
+      });
+    } else {
+      others.forEach(item => {
+        item.slider.value = 0;
+        item.valEl.textContent = '0%';
+      });
+    }
+
+    changedItem.valEl.textContent = `${changedItem.slider.value}%`;
+    updateAllocSum();
+    calculateAndRender();
+    isAutoBalancing = false;
+  }
+
+  // Hook up asset checkbox & slider listeners
+  ASSET_ITEMS.forEach(item => {
+    if (item.chk) {
+      item.chk.addEventListener('change', () => {
+        const active = getActiveAssetItems();
+        if (active.length === 0) {
+          // Keep at least one checked
+          item.chk.checked = true;
+          return;
+        }
+        syncAssetCardsAndSliders();
+        equalSplitActiveAssets();
+      });
+    }
+
+    if (item.slider) {
+      item.slider.addEventListener('input', () => {
+        rebalanceAllocSliders(item.key);
+      });
+    }
+  });
+
   // Quick allocation presets
   const ALLOC_PRESETS = {
-    balanced: { uk: 25, etf: 35, fund: 20, it: 10, us: 10, eu: 0 },
-    'etfs-only': { uk: 0, etf: 100, fund: 0, it: 0, us: 0, eu: 0 },
-    'funds-only': { uk: 0, etf: 0, fund: 100, it: 0, us: 0, eu: 0 },
-    'shares-etfs': { uk: 50, etf: 50, fund: 0, it: 0, us: 0, eu: 0 },
-    'global-stocks': { uk: 30, etf: 10, fund: 0, it: 0, us: 40, eu: 20 }
+    balanced: { ukShares: 25, etfs: 35, funds: 20, investmentTrusts: 10, usStocks: 10, europeanStocks: 0 },
+    'etfs-only': { ukShares: 0, etfs: 100, funds: 0, investmentTrusts: 0, usStocks: 0, europeanStocks: 0 },
+    'funds-only': { ukShares: 0, etfs: 0, funds: 100, investmentTrusts: 0, usStocks: 0, europeanStocks: 0 },
+    'shares-etfs': { ukShares: 50, etfs: 50, funds: 0, investmentTrusts: 0, usStocks: 0, europeanStocks: 0 },
+    'global-stocks': { ukShares: 30, etfs: 0, funds: 0, investmentTrusts: 0, usStocks: 40, europeanStocks: 30 }
   };
 
   function applyAllocPreset(presetKey) {
@@ -268,17 +382,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!p) return;
 
     isAutoBalancing = true;
-    allocUkShares.value = p.uk;
-    allocEtfs.value = p.etf;
-    allocFunds.value = p.fund;
-    allocIt.value = p.it;
-    allocUs.value = p.us;
-    allocEu.value = p.eu;
-
-    allocSliders.forEach(item => {
-      item.valEl.textContent = `${item.slider.value}%`;
+    ASSET_ITEMS.forEach(item => {
+      const pct = p[item.key] || 0;
+      if (item.chk) item.chk.checked = (pct > 0);
+      if (item.slider) item.slider.value = pct;
+      if (item.valEl) item.valEl.textContent = `${pct}%`;
     });
 
+    syncAssetCardsAndSliders();
     updateAllocSum();
     calculateAndRender();
     isAutoBalancing = false;
@@ -293,27 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnBalance100 = document.getElementById('btn-balance-100');
   if (btnBalance100) {
     btnBalance100.addEventListener('click', () => {
-      const sum = allocSliders.reduce((acc, item) => acc + (parseInt(item.slider.value, 10) || 0), 0);
-      if (sum === 100) return;
-      if (sum === 0) {
-        applyAllocPreset('balanced');
-        return;
-      }
-      isAutoBalancing = true;
-      let allocatedSoFar = 0;
-      allocSliders.forEach((item, index) => {
-        if (index === allocSliders.length - 1) {
-          item.slider.value = Math.max(0, 100 - allocatedSoFar);
-        } else {
-          const scaled = Math.round(((parseInt(item.slider.value, 10) || 0) / sum) * 100);
-          item.slider.value = scaled;
-          allocatedSoFar += scaled;
-        }
-        item.valEl.textContent = `${item.slider.value}%`;
-      });
-      updateAllocSum();
-      calculateAndRender();
-      isAutoBalancing = false;
+      equalSplitActiveAssets();
     });
   }
 
@@ -379,18 +470,20 @@ document.addEventListener('DOMContentLoaded', () => {
     monthlySipp.value = config.monthlyContrib.sipp;
     monthlyGia.value = config.monthlyContrib.gia;
 
-    allocUkShares.value = config.assetAllocation.ukSharesPct;
-    valUkShares.textContent = `${config.assetAllocation.ukSharesPct}%`;
-    allocEtfs.value = config.assetAllocation.etfsPct;
-    valEtfs.textContent = `${config.assetAllocation.etfsPct}%`;
-    allocFunds.value = config.assetAllocation.fundsPct;
-    valFunds.textContent = `${config.assetAllocation.fundsPct}%`;
-    allocIt.value = config.assetAllocation.investmentTrustsPct;
-    valIt.textContent = `${config.assetAllocation.investmentTrustsPct}%`;
-    allocUs.value = config.assetAllocation.usStocksPct;
-    valUs.textContent = `${config.assetAllocation.usStocksPct}%`;
-    allocEu.value = config.assetAllocation.europeanStocksPct;
-    valEu.textContent = `${config.assetAllocation.europeanStocksPct}%`;
+    ASSET_ITEMS.forEach(item => {
+      let pct = 0;
+      if (item.key === 'ukShares') pct = config.assetAllocation.ukSharesPct || 0;
+      else if (item.key === 'etfs') pct = config.assetAllocation.etfsPct || 0;
+      else if (item.key === 'funds') pct = config.assetAllocation.fundsPct || 0;
+      else if (item.key === 'investmentTrusts') pct = config.assetAllocation.investmentTrustsPct || 0;
+      else if (item.key === 'usStocks') pct = config.assetAllocation.usStocksPct || 0;
+      else if (item.key === 'europeanStocks') pct = config.assetAllocation.europeanStocksPct || 0;
+
+      if (item.chk) item.chk.checked = (pct > 0);
+      if (item.slider) item.slider.value = pct;
+      if (item.valEl) item.valEl.textContent = `${pct}%`;
+    });
+    syncAssetCardsAndSliders();
 
     tradesUk.value = config.tradesUk;
     valTradesUk.textContent = `${config.tradesUk} / yr`;
@@ -503,12 +596,12 @@ document.addEventListener('DOMContentLoaded', () => {
         gia: giaM
       },
       assetAllocation: {
-        ukSharesPct: Number(allocUkShares.value) || 0,
-        etfsPct: Number(allocEtfs.value) || 0,
-        fundsPct: Number(allocFunds.value) || 0,
-        investmentTrustsPct: Number(allocIt.value) || 0,
-        usStocksPct: Number(allocUs.value) || 0,
-        europeanStocksPct: Number(allocEu.value) || 0
+        ukSharesPct: (chkUkShares && chkUkShares.checked) ? (Number(allocUkShares.value) || 0) : 0,
+        etfsPct: (chkEtfs && chkEtfs.checked) ? (Number(allocEtfs.value) || 0) : 0,
+        fundsPct: (chkFunds && chkFunds.checked) ? (Number(allocFunds.value) || 0) : 0,
+        investmentTrustsPct: (chkIt && chkIt.checked) ? (Number(allocIt.value) || 0) : 0,
+        usStocksPct: (chkUs && chkUs.checked) ? (Number(allocUs.value) || 0) : 0,
+        europeanStocksPct: (chkEu && chkEu.checked) ? (Number(allocEu.value) || 0) : 0
       },
       tradingFrequency: {
         ukShareTradesPerYear: Number(tradesUk.value) || 0,
@@ -597,15 +690,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Render Winner Investment Permissions & Not-Permitted Callouts
+  // Render Winner Investment Permissions & Confirmation
   function renderWinnerPermissions(winner) {
     const container = document.getElementById('winner-permissions-container');
     if (!container) return;
 
     const p = winner.platform;
     const perms = p.investmentPermissions || {};
-    const notPermList = p.notPermittedList || [];
-    const notPermDetails = p.notPermittedDetails || '';
-    const activeDisallowed = winner.activeDisallowed || [];
 
     const assetKeys = [
       { key: 'ukShares', label: 'UK Shares' },
@@ -627,361 +718,301 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       } else {
         return `
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-red-950/90 text-red-300 border border-red-500/50 shadow-sm">
-            <i data-lucide="x" class="w-3.5 h-3.5 text-red-400"></i>
-            <span class="line-through decoration-red-400">${asset.label}</span>
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-normal bg-slate-800 text-slate-400 border border-slate-700 shadow-sm">
+            <i data-lucide="minus" class="w-3.5 h-3.5 text-slate-500"></i>
+            <span class="line-through decoration-slate-500">${asset.label}</span>
           </span>
         `;
       }
     }).join('');
 
-    let conflictHtml = '';
-    if (activeDisallowed.length > 0) {
-      conflictHtml = `
-        <div class="p-3 rounded-xl bg-amber-950/80 border border-amber-500/50 text-amber-200 space-y-1">
-          <div class="font-bold flex items-center gap-1.5 text-amber-300 text-xs">
-            <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
-            <span>Warning: Allocation Conflict on ${p.shortName}</span>
-          </div>
-          <p class="text-[11px] text-amber-200/90">
-            You allocated funds to: ${activeDisallowed.map(d => `<span class="font-semibold text-amber-300 underline">${d.asset} (${d.pct}%)</span>`).join(', ')}, but <strong>${p.shortName} does not permit this investment type</strong>.
-          </p>
-        </div>
-      `;
-    }
-
-    let notPermittedHtml = '';
-    if (notPermList.length > 0) {
-      notPermittedHtml = `
-        <div class="p-3 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-red-300 flex items-center gap-1.5 text-xs">
-              <i data-lucide="ban" class="w-4 h-4 text-red-400"></i>
-              <span>NOT Permitted on ${p.name}:</span>
-            </span>
-            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-red-900/60 border border-red-700/60 text-red-300">Platform Restrictions</span>
-          </div>
-          <div class="flex flex-wrap gap-1.5">
-            ${notPermList.map(item => `
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-900/40 border border-red-700/50 text-red-200 text-[11px] font-medium">
-                <i data-lucide="x-circle" class="w-3 h-3 text-red-400"></i>
-                <span>${item}</span>
-              </span>
-            `).join('')}
-          </div>
-          ${notPermDetails ? `<p class="text-[11px] text-red-300/90 pt-0.5 leading-relaxed">${notPermDetails}</p>` : ''}
-        </div>
-      `;
-    } else {
-      notPermittedHtml = `
-        <div class="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 flex items-center gap-2">
-          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 shrink-0"></i>
-          <span class="text-[11px] text-emerald-300">
-            <strong>Full Open Architecture:</strong> All major asset classes (UK Shares, ETFs, Funds/OEICs, Investment Trusts, US & European Stocks) are permitted.
-          </span>
-        </div>
-      `;
-    }
-
     container.innerHTML = `
-      <div class="space-y-2.5">
+      <div class="space-y-2">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-slate-300">
-          <span class="font-bold uppercase tracking-wider text-slate-400">Investment Universe Permissions for ${p.shortName}:</span>
-          <span class="text-slate-400 text-[10px]">Green = Allowed | Red = Restricted</span>
+          <span class="font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+            <span>100% Satisfies All Your Chosen Investments</span>
+          </span>
+          <span class="text-slate-400 text-[10px]">Permitted on ${p.shortName}</span>
         </div>
         <div class="flex flex-wrap gap-1.5">
           ${pillsHtml}
         </div>
-        ${conflictHtml}
-        ${notPermittedHtml}
       </div>
     `;
   }
 
-  // Render Leaderboard Cards
+  // Render Leaderboard Cards (Only completely compatible platforms)
   function renderPlatformCards(rankedPlatforms) {
     platformCardsContainer.innerHTML = '';
 
-    rankedPlatforms.forEach((result, idx) => {
-      const p = result.platform;
-      const isWinner = (idx === 0);
-      const isDisqualified = result.compatibility.hasDisqualifier;
-
-      const card = document.createElement('div');
-      card.className = `platform-card bg-white rounded-2xl border p-5 shadow-sm space-y-4 transition-all ${
-        isWinner
-          ? 'border-emerald-500 ring-2 ring-emerald-500/20'
-          : isDisqualified
-          ? 'border-red-200 bg-red-50/10'
-          : 'border-slate-200'
-      }`;
-
-      // Badge logic
-      let badgeHtml = '';
-      if (isWinner) {
-        badgeHtml = `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-          <i data-lucide="trophy" class="w-3.5 h-3.5 text-emerald-600"></i>
-          <span>#1 Best Recommendation</span>
-        </span>`;
-      } else if (isDisqualified) {
-        badgeHtml = `<span class="bg-red-100 text-red-800 border border-red-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-          <i data-lucide="alert-octagon" class="w-3.5 h-3.5 text-red-600"></i>
-          <span>Incompatible with Criteria</span>
-        </span>`;
-      } else {
-        badgeHtml = `<span class="bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
-          Rank #${result.rank}
-        </span>`;
-      }
-
-      // Disqualification banner if any
-      let alertBannerHtml = '';
-      if (isDisqualified) {
-        alertBannerHtml = `
-          <div class="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 space-y-1">
-            <span class="font-bold flex items-center gap-1">
-              <i data-lucide="alert-triangle" class="w-4 h-4 text-red-600"></i>
-              <span>Disqualification Notice:</span>
-            </span>
-            <ul class="list-disc list-inside text-[11px] space-y-0.5">
-              ${result.compatibility.disqualifiers.map(d => `<li>${d}</li>`).join('')}
-            </ul>
-          </div>
-        `;
-      } else if (result.compatibility.warnings.length > 0) {
-        alertBannerHtml = `
-          <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 space-y-1">
-            <span class="font-bold flex items-center gap-1">
-              <i data-lucide="info" class="w-4 h-4 text-amber-600"></i>
-              <span>Consideration Note:</span>
-            </span>
-            <ul class="list-disc list-inside text-[11px] space-y-0.5">
-              ${result.compatibility.warnings.map(w => `<li>${w}</li>`).join('')}
-            </ul>
-          </div>
-        `;
-      }
-
-      // Key reason bullet
-      const keyReasonHtml = result.keyReasons && result.keyReasons.length ? `
-        <div class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-start gap-2">
-          <i data-lucide="sparkle" class="w-4 h-4 text-brand-600 shrink-0 mt-0.5"></i>
-          <span>${result.keyReasons[0].text}</span>
+    // Render Live Compatibility Status Bar
+    const statusBar = document.getElementById('compatibility-status-bar');
+    if (statusBar) {
+      const compCount = rankedPlatforms.length;
+      const exclCount = rankedPlatforms.excludedPlatforms ? rankedPlatforms.excludedPlatforms.length : 0;
+      statusBar.innerHTML = `
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-200 shrink-0"></span>
+          <span class="font-bold text-slate-800">
+            Showing ${compCount} platform${compCount === 1 ? '' : 's'} that completely satisfy your criteria
+          </span>
         </div>
-      ` : '';
+        ${exclCount > 0 ? `
+          <span class="text-[11px] font-semibold text-slate-600 bg-slate-200/70 px-2.5 py-0.5 rounded-full">
+            ${exclCount} platform${exclCount === 1 ? '' : 's'} excluded
+          </span>
+        ` : `
+          <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-100/70 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+            <i data-lucide="check" class="w-3 h-3 text-emerald-600"></i>
+            <span>All platforms compatible</span>
+          </span>
+        `}
+      `;
+    }
 
-      // Universe pills for platform card
-      const assetKeys = [
-        { key: 'ukShares', label: 'UK Shares' },
-        { key: 'etfs', label: 'ETFs' },
-        { key: 'funds', label: 'Funds / OEICs' },
-        { key: 'investmentTrusts', label: 'Inv. Trusts' },
-        { key: 'usStocks', label: 'US Stocks' },
-        { key: 'europeanStocks', label: 'EU Stocks' }
-      ];
+    if (rankedPlatforms.length === 0) {
+      platformCardsContainer.innerHTML = `
+        <div class="p-6 rounded-2xl bg-amber-50 border border-amber-200 text-center space-y-2">
+          <i data-lucide="alert-circle" class="w-8 h-8 text-amber-600 mx-auto"></i>
+          <h4 class="font-bold text-amber-900">No platforms satisfy this exact combination</h4>
+          <p class="text-xs text-amber-800">Please review your selected investments or account options above.</p>
+        </div>
+      `;
+    } else {
+      rankedPlatforms.forEach((result, idx) => {
+        const p = result.platform;
+        const isWinner = (idx === 0);
 
-      const universePills = assetKeys.map(a => {
-        const perm = p.investmentPermissions && p.investmentPermissions[a.key];
-        const allowed = perm ? perm.permitted : true;
-        if (allowed) {
-          return `
-            <div class="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-between" title="${perm?.detail || 'Allowed'}">
-              <span class="font-medium text-emerald-900 truncate">${a.label}</span>
-              <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
-            </div>
-          `;
+        const card = document.createElement('div');
+        card.className = `platform-card bg-white rounded-2xl border p-5 shadow-sm space-y-4 transition-all ${
+          isWinner
+            ? 'border-emerald-500 ring-2 ring-emerald-500/20'
+            : 'border-slate-200'
+        }`;
+
+        // Badge logic
+        let badgeHtml = '';
+        if (isWinner) {
+          badgeHtml = `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+            <i data-lucide="trophy" class="w-3.5 h-3.5 text-emerald-600"></i>
+            <span>#1 Best Recommendation</span>
+          </span>`;
         } else {
-          return `
-            <div class="p-1.5 rounded-lg bg-red-50 border border-red-300 flex items-center justify-between" title="${perm?.detail || 'Not Permitted'}">
-              <span class="font-semibold text-red-800 line-through truncate">${a.label}</span>
-              <i data-lucide="x" class="w-3.5 h-3.5 text-red-600 shrink-0"></i>
-            </div>
-          `;
+          badgeHtml = `<span class="bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+            Rank #${result.rank}
+          </span>`;
         }
-      }).join('');
 
-      // Not Permitted Box
-      let notPermittedCardHtml = '';
-      if (p.notPermittedList && p.notPermittedList.length > 0) {
-        notPermittedCardHtml = `
-          <div class="p-2.5 rounded-lg bg-red-50/80 border border-red-200 text-red-900 space-y-1">
-            <span class="font-bold flex items-center gap-1 text-[11px] text-red-700">
-              <i data-lucide="ban" class="w-3.5 h-3.5 text-red-600"></i>
-              <span>NOT PERMITTED ON THIS PLATFORM:</span>
-            </span>
-            <div class="flex flex-wrap gap-1">
-              ${p.notPermittedList.map(item => `
-                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-100 text-red-800 border border-red-200 font-semibold text-[10px]">
-                  <i data-lucide="x-circle" class="w-3 h-3 text-red-600"></i>
-                  <span>${item}</span>
+        // Key reason bullet
+        const keyReasonHtml = result.keyReasons && result.keyReasons.length ? `
+          <div class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-start gap-2">
+            <i data-lucide="sparkle" class="w-4 h-4 text-brand-600 shrink-0 mt-0.5"></i>
+            <span>${result.keyReasons[0].text}</span>
+          </div>
+        ` : '';
+
+        // Universe pills for platform card
+        const assetKeys = [
+          { key: 'ukShares', label: 'UK Shares' },
+          { key: 'etfs', label: 'ETFs' },
+          { key: 'funds', label: 'Funds / OEICs' },
+          { key: 'investmentTrusts', label: 'Inv. Trusts' },
+          { key: 'usStocks', label: 'US Stocks' },
+          { key: 'europeanStocks', label: 'EU Stocks' }
+        ];
+
+        const universePills = assetKeys.map(a => {
+          const perm = p.investmentPermissions && p.investmentPermissions[a.key];
+          const allowed = perm ? perm.permitted : true;
+          if (allowed) {
+            return `
+              <div class="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-between" title="${perm?.detail || 'Allowed'}">
+                <span class="font-medium text-emerald-900 truncate">${a.label}</span>
+                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
+              </div>
+            `;
+          } else {
+            return `
+              <div class="p-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-between" title="${perm?.detail || 'Not Permitted'}">
+                <span class="font-normal text-slate-400 line-through truncate">${a.label}</span>
+                <i data-lucide="minus" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+              </div>
+            `;
+          }
+        }).join('');
+
+        card.innerHTML = `
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                ${badgeHtml}
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                  <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                  <span>100% Satisfies Selected Criteria</span>
                 </span>
-              `).join('')}
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-100">
+                  ${p.badge}
+                </span>
+              </div>
+              <h4 class="text-lg font-bold text-slate-900">${p.name}</h4>
+              <p class="text-xs text-slate-500">${p.tagline}</p>
             </div>
-            ${p.notPermittedDetails ? `<p class="text-[10px] text-red-700 pt-0.5 leading-snug">${p.notPermittedDetails}</p>` : ''}
-          </div>
-        `;
-      } else {
-        notPermittedCardHtml = `
-          <div class="text-[11px] text-emerald-800 bg-emerald-50/60 p-2 rounded-lg border border-emerald-100 flex items-center gap-1.5">
-            <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
-            <span>Full open architecture: you can trade all 6 major investment asset classes on ${p.shortName}.</span>
-          </div>
-        `;
-      }
 
-      // Active conflict box
-      let activeConflictCardHtml = '';
-      if (result.activeDisallowed && result.activeDisallowed.length > 0) {
-        activeConflictCardHtml = `
-          <div class="p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 space-y-1">
-            <span class="font-bold flex items-center gap-1 text-[11px] text-amber-800">
-              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-600"></i>
-              <span>Your Portfolio Contains Disallowed Assets:</span>
-            </span>
-            <p class="text-[10px] text-amber-800">
-              You selected: ${result.activeDisallowed.map(d => `<strong>${d.asset} (${d.pct}%)</strong>`).join(', ')}. ${p.shortName} cannot execute or hold these holdings.
-            </p>
-          </div>
-        `;
-      }
-
-      card.innerHTML = `
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div class="space-y-1">
-            <div class="flex items-center gap-2 flex-wrap">
-              ${badgeHtml}
-              <span class="text-xs font-semibold px-2 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-100">
-                ${p.badge}
+            <div class="text-right sm:border-l sm:border-slate-100 sm:pl-4 min-w-[130px]">
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">Year 1 Total Cost</span>
+              <div class="text-2xl font-black ${isWinner ? 'text-emerald-600' : 'text-slate-900'}">
+                ${formatGbp(result.yearOneTotalFee)}
+              </div>
+              <span class="text-[11px] text-slate-500 block">
+                ${result.effectiveFeePct.toFixed(2)}% effective drag
               </span>
             </div>
-            <h4 class="text-lg font-bold text-slate-900">${p.name}</h4>
-            <p class="text-xs text-slate-500">${p.tagline}</p>
           </div>
 
-          <div class="text-right sm:border-l sm:border-slate-100 sm:pl-4 min-w-[130px]">
-            <span class="text-[10px] uppercase font-bold text-slate-400 block">Year 1 Total Cost</span>
-            <div class="text-2xl font-black ${isWinner ? 'text-emerald-600' : 'text-slate-900'}">
-              ${formatGbp(result.yearOneTotalFee)}
+          ${keyReasonHtml}
+
+          <!-- Quick 4-box metrics -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-xs">
+            <div class="bg-slate-50 p-2 rounded-lg text-center">
+              <span class="text-[10px] text-slate-400 font-bold uppercase block">Platform Fee</span>
+              <span class="font-bold text-slate-800">${formatGbp(result.totalPlatformFee)}</span>
             </div>
-            <span class="text-[11px] text-slate-500 block">
-              ${result.effectiveFeePct.toFixed(2)}% effective drag
-            </span>
+            <div class="bg-slate-50 p-2 rounded-lg text-center">
+              <span class="text-[10px] text-slate-400 font-bold uppercase block">Dealing Fees</span>
+              <span class="font-bold text-slate-800">${formatGbp(result.totalDealingFee)}</span>
+            </div>
+            <div class="bg-slate-50 p-2 rounded-lg text-center">
+              <span class="text-[10px] text-slate-400 font-bold uppercase block">Regular Inv.</span>
+              <span class="font-bold text-slate-800">${formatGbp(result.regularInvestingFee)}</span>
+            </div>
+            <div class="bg-slate-50 p-2 rounded-lg text-center">
+              <span class="text-[10px] text-slate-400 font-bold uppercase block">FX Fees</span>
+              <span class="font-bold text-slate-800">${formatGbp(result.fxFee)}</span>
+            </div>
           </div>
-        </div>
 
-        ${alertBannerHtml}
-        ${keyReasonHtml}
-
-        <!-- Quick 4-box metrics -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-xs">
-          <div class="bg-slate-50 p-2 rounded-lg text-center">
-            <span class="text-[10px] text-slate-400 font-bold uppercase block">Platform Fee</span>
-            <span class="font-bold text-slate-800">${formatGbp(result.totalPlatformFee)}</span>
-          </div>
-          <div class="bg-slate-50 p-2 rounded-lg text-center">
-            <span class="text-[10px] text-slate-400 font-bold uppercase block">Dealing Fees</span>
-            <span class="font-bold text-slate-800">${formatGbp(result.totalDealingFee)}</span>
-          </div>
-          <div class="bg-slate-50 p-2 rounded-lg text-center">
-            <span class="text-[10px] text-slate-400 font-bold uppercase block">Regular Inv.</span>
-            <span class="font-bold text-slate-800">${formatGbp(result.regularInvestingFee)}</span>
-          </div>
-          <div class="bg-slate-50 p-2 rounded-lg text-center">
-            <span class="text-[10px] text-slate-400 font-bold uppercase block">FX Fees</span>
-            <span class="font-bold text-slate-800">${formatGbp(result.fxFee)}</span>
-          </div>
-        </div>
-
-        <!-- Investment Universe Permissions & Restrictions -->
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2.5 text-xs">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
-              <i data-lucide="layers" class="w-4 h-4 text-brand-600"></i>
-              <span>Investment Universe Permissions</span>
-            </span>
-            ${p.notPermittedList && p.notPermittedList.length > 0 ? `
-              <span class="text-[10px] font-bold text-red-700 bg-red-100 border border-red-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <i data-lucide="alert-circle" class="w-3 h-3 text-red-600"></i>
-                <span>${p.notPermittedList.length} Restriction${p.notPermittedList.length > 1 ? 's' : ''}</span>
+          <!-- Investment Universe Permissions -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
+                <i data-lucide="layers" class="w-4 h-4 text-brand-600"></i>
+                <span>Supported Asset Universe</span>
               </span>
-            ` : `
               <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
                 <i data-lucide="check" class="w-3 h-3 text-emerald-600"></i>
-                <span>Full Open Architecture</span>
+                <span>Permits All Your Selected Assets</span>
               </span>
-            `}
-          </div>
-
-          <!-- 6-pill permission badges -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1.5 text-[11px]">
-            ${universePills}
-          </div>
-
-          <!-- NOT PERMITTED Section -->
-          ${notPermittedCardHtml}
-
-          <!-- Active Disallowed Warning -->
-          ${activeConflictCardHtml}
-        </div>
-
-        <!-- Accordion Toggle for Detailed Specs -->
-        <details class="group text-xs pt-1">
-          <summary class="cursor-pointer font-semibold text-brand-600 hover:text-brand-800 list-none flex items-center justify-between py-1 border-t border-slate-100">
-            <span>View Pros, Cons & Platform Highlights</span>
-            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-open:rotate-180"></i>
-          </summary>
-          
-          <div class="pt-3 space-y-3">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="space-y-1">
-                <span class="font-bold text-emerald-800 flex items-center gap-1">
-                  <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
-                  <span>Strengths / Pros</span>
-                </span>
-                <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
-                  ${p.pros.map(pro => `<li>${pro}</li>`).join('')}
-                </ul>
-              </div>
-
-              <div class="space-y-1">
-                <span class="font-bold text-red-800 flex items-center gap-1">
-                  <i data-lucide="x" class="w-3.5 h-3.5 text-red-600"></i>
-                  <span>Limitations / Cons</span>
-                </span>
-                <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
-                  ${p.cons.map(con => `<li>${con}</li>`).join('')}
-                </ul>
-              </div>
             </div>
 
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
-              <div>
-                <span class="text-slate-400 font-semibold block">Cash Interest:</span>
-                <span class="font-bold text-slate-800">${p.features.interestOnCash}</span>
-              </div>
-              <div>
-                <span class="text-slate-400 font-semibold block">Customer Service:</span>
-                <span class="font-medium text-slate-800">${p.features.customerService}</span>
-              </div>
-              <div>
-                <span class="text-slate-400 font-semibold block">App Store Score:</span>
-                <span class="font-medium text-slate-800">${p.features.mobileAppRating}</span>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between pt-1">
-              <span class="text-[11px] text-slate-500 font-medium">5-Year Projected Cumulative Cost: <strong>${formatGbpInt(result.fiveYearCost)}</strong></span>
-              <a href="${p.officialUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-brand-600 hover:text-brand-800 font-bold text-xs">
-                <span>Visit ${p.shortName}</span>
-                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
-              </a>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1.5 text-[11px]">
+              ${universePills}
             </div>
           </div>
-        </details>
-      `;
 
-      platformCardsContainer.appendChild(card);
-    });
+          <!-- Accordion Toggle for Detailed Specs -->
+          <details class="group text-xs pt-1">
+            <summary class="cursor-pointer font-semibold text-brand-600 hover:text-brand-800 list-none flex items-center justify-between py-1 border-t border-slate-100">
+              <span>View Pros, Cons & Platform Highlights</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-open:rotate-180"></i>
+            </summary>
+            
+            <div class="pt-3 space-y-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                  <span class="font-bold text-emerald-800 flex items-center gap-1">
+                    <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                    <span>Strengths / Pros</span>
+                  </span>
+                  <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
+                    ${p.pros.map(pro => `<li>${pro}</li>`).join('')}
+                  </ul>
+                </div>
+
+                <div class="space-y-1">
+                  <span class="font-bold text-red-800 flex items-center gap-1">
+                    <i data-lucide="x" class="w-3.5 h-3.5 text-red-600"></i>
+                    <span>Limitations / Cons</span>
+                  </span>
+                  <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
+                    ${p.cons.map(con => `<li>${con}</li>`).join('')}
+                  </ul>
+                </div>
+              </div>
+
+              <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+                <div>
+                  <span class="text-slate-400 font-semibold block">Cash Interest:</span>
+                  <span class="font-bold text-slate-800">${p.features.interestOnCash}</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 font-semibold block">Customer Service:</span>
+                  <span class="font-medium text-slate-800">${p.features.customerService}</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 font-semibold block">App Store Score:</span>
+                  <span class="font-medium text-slate-800">${p.features.mobileAppRating}</span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-1">
+                <span class="text-[11px] text-slate-500 font-medium">5-Year Projected Cumulative Cost: <strong>${formatGbpInt(result.fiveYearCost)}</strong></span>
+                <a href="${p.officialUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-brand-600 hover:text-brand-800 font-bold text-xs">
+                  <span>Visit ${p.shortName}</span>
+                  <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                </a>
+              </div>
+            </div>
+          </details>
+        `;
+
+        platformCardsContainer.appendChild(card);
+      });
+    }
+
+    // Render Excluded Platforms Drawer
+    const excludedContainer = document.getElementById('excluded-platforms-container');
+    if (excludedContainer) {
+      const excluded = rankedPlatforms.excludedPlatforms || [];
+      if (excluded.length > 0) {
+        excludedContainer.innerHTML = `
+          <details class="group bg-slate-50/80 border border-slate-200 rounded-2xl p-4 text-xs transition">
+            <summary class="cursor-pointer font-bold text-slate-700 hover:text-slate-900 flex items-center justify-between list-none">
+              <span class="flex items-center gap-2">
+                <i data-lucide="ban" class="w-4 h-4 text-slate-400"></i>
+                <span>View ${excluded.length} Excluded Platform${excluded.length > 1 ? 's' : ''} (Not Meeting All Criteria)</span>
+              </span>
+              <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-open:rotate-180 text-slate-400"></i>
+            </summary>
+
+            <div class="pt-3 space-y-2.5">
+              <p class="text-[11px] text-slate-500">The following platforms cannot completely fulfill your portfolio because they do not permit one or more of your chosen investments or pension contribution types:</p>
+              <div class="grid grid-cols-1 gap-2">
+                ${excluded.map(ex => `
+                  <div class="p-3 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="font-bold text-slate-900">${ex.platform.name}</span>
+                        <span class="text-[10px] text-red-700 bg-red-100 font-semibold px-2 py-0.5 rounded">Excluded</span>
+                      </div>
+                      <ul class="text-[11px] text-red-600 list-disc list-inside space-y-0.5 pt-1">
+                        ${ex.compatibility.disqualifiers.map(d => `<li>${d}</li>`).join('')}
+                      </ul>
+                    </div>
+                    <div class="text-right sm:border-l sm:border-slate-100 sm:pl-3 min-w-[110px]">
+                      <span class="text-[10px] text-slate-400 uppercase font-semibold block">Indicative Cost</span>
+                      <span class="font-bold text-slate-500 line-through">${formatGbp(ex.yearOneTotalFee)}</span>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </details>
+        `;
+      } else {
+        excludedContainer.innerHTML = '';
+      }
+    }
   }
 
   // Render Breakdown Table

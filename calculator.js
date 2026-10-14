@@ -467,6 +467,18 @@
       activeDisallowed.push({ asset: 'Investment Trusts', label: 'Investment Trusts', pct: Math.round(normAlloc.investmentTrustsPct), reason: 'Closed-end investment trusts are not supported' });
     }
 
+    // STRICT FILTER: If platform cannot hold/trade any of the user's selected investments, disqualify it completely
+    if (activeDisallowed.length > 0) {
+      compatibility.hasDisqualifier = true;
+      compatibility.isFullyCompatible = false;
+      activeDisallowed.forEach(d => {
+        const msg = `${platform.shortName} does NOT support ${d.label} (${d.reason}).`;
+        if (!compatibility.disqualifiers.includes(msg)) {
+          compatibility.disqualifiers.push(msg);
+        }
+      });
+    }
+
     // Rule: Investment Universe checks
     const wantsOverseas = (normAlloc.usStocksPct > 0 || normAlloc.europeanStocksPct > 0);
     const wantsUkShares = (normAlloc.ukSharesPct > 0 || normAlloc.investmentTrustsPct > 0);
@@ -476,17 +488,21 @@
       if (wantsUkShares || wantsOverseas) {
         compatibility.hasDisqualifier = true;
         compatibility.isFullyCompatible = false;
-        compatibility.disqualifiers.push(
-          "Vanguard Investor UK does NOT permit trading individual UK shares, US shares, European stocks, or third-party funds (Vanguard-only index funds & ETFs)."
-        );
+        const vMsg = "Vanguard Investor UK does NOT permit trading individual UK shares, US shares, European stocks, or third-party funds (Vanguard-only index funds & ETFs).";
+        if (!compatibility.disqualifiers.includes(vMsg)) {
+          compatibility.disqualifiers.push(vMsg);
+        }
       }
     }
 
     if (platform.id === 'trading-212') {
       if (wantsFunds) {
-        compatibility.warnings.push(
-          "Trading 212 does not offer Unit Trusts or OEIC mutual funds. You can however build an equivalent portfolio using low-cost UCITS ETFs at 0% commission."
-        );
+        compatibility.hasDisqualifier = true;
+        compatibility.isFullyCompatible = false;
+        const tMsg = "Trading 212 does not offer Unit Trusts or OEIC mutual funds (ETFs and stocks only).";
+        if (!compatibility.disqualifiers.includes(tMsg)) {
+          compatibility.disqualifiers.push(tMsg);
+        }
       }
       if (accounts.sipp && pensionWithdrawal === 'flexible_drawdown') {
         compatibility.warnings.push(
@@ -497,9 +513,12 @@
 
     if (platform.id === 'fidelity') {
       if (normAlloc.europeanStocksPct > 0) {
-        compatibility.warnings.push(
-          "Fidelity UK offers US shares but has limited European direct single-stock dealing compared to dedicated stockbrokers."
-        );
+        compatibility.hasDisqualifier = true;
+        compatibility.isFullyCompatible = false;
+        const fMsg = "Fidelity UK does not support direct single-stock trading on Continental European exchanges.";
+        if (!compatibility.disqualifiers.includes(fMsg)) {
+          compatibility.disqualifiers.push(fMsg);
+        }
       }
     }
 
@@ -637,31 +656,43 @@
   }
 
   /**
-   * Evaluate all 6 platforms and rank them
+   * Evaluate all platforms and return only those that completely satisfy criteria
    */
   function compareAllPlatforms(inputs) {
-    const results = PLATFORMS_DATA.map(p => evaluatePlatform(p, inputs));
+    const allEvaluated = PLATFORMS_DATA.map(p => evaluatePlatform(p, inputs));
 
-    // Sort by suitability score descending; if tied, sort by lowest year one total fee
-    results.sort((a, b) => {
-      // Disqualified platforms go to the bottom
+    // Sort: compatible first, then suitability score descending, then lowest fee
+    allEvaluated.sort((a, b) => {
       if (a.compatibility.hasDisqualifier && !b.compatibility.hasDisqualifier) return 1;
       if (!a.compatibility.hasDisqualifier && b.compatibility.hasDisqualifier) return -1;
 
-      // Higher score first
       if (b.suitabilityScore !== a.suitabilityScore) {
         return b.suitabilityScore - a.suitabilityScore;
       }
 
-      // Lowest fee first
       return a.yearOneTotalFee - b.yearOneTotalFee;
     });
 
-    results.forEach((res, index) => {
+    // Platforms that satisfy all user criteria completely
+    const compatiblePlatforms = allEvaluated.filter(r => !r.compatibility.hasDisqualifier);
+    const excludedPlatforms = allEvaluated.filter(r => r.compatibility.hasDisqualifier);
+
+    compatiblePlatforms.forEach((res, index) => {
       res.rank = index + 1;
     });
 
-    return results;
+    excludedPlatforms.forEach((res, index) => {
+      res.rank = compatiblePlatforms.length + index + 1;
+    });
+
+    // We return the compatiblePlatforms array, with metadata properties attached
+    const returnList = compatiblePlatforms.length > 0 ? compatiblePlatforms : allEvaluated;
+    returnList.allEvaluated = allEvaluated;
+    returnList.compatiblePlatforms = compatiblePlatforms;
+    returnList.excludedPlatforms = excludedPlatforms;
+    returnList.hasNoMatches = (compatiblePlatforms.length === 0);
+
+    return returnList;
   }
 
   /**
@@ -670,7 +701,11 @@
   function generateCrossoverData(inputs) {
     const potSizes = [5000, 15000, 30000, 50000, 75000, 100000, 150000, 250000, 350000, 500000];
 
-    const datasets = PLATFORMS_DATA.map(platform => {
+    // Chart only the platforms that satisfy criteria completely
+    const compatibleData = PLATFORMS_DATA.filter(p => !evaluatePlatform(p, inputs).compatibility.hasDisqualifier);
+    const platformsToChart = compatibleData.length > 0 ? compatibleData : PLATFORMS_DATA;
+
+    const datasets = platformsToChart.map(platform => {
       const dataPoints = potSizes.map(pot => {
         // Clone inputs with this single pot size split across selected accounts
         const accountsSelected = Object.keys(inputs.accounts || {}).filter(k => inputs.accounts[k]);
@@ -693,7 +728,7 @@
         label: platform.shortName,
         borderColor: platform.logoColor,
         data: dataPoints,
-        disqualified: evaluatePlatform(platform, inputs).compatibility.hasDisqualifier
+        disqualified: false
       };
     });
 

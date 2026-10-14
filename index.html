@@ -226,111 +226,156 @@
             </div>
           </div>
 
-          <!-- Question 3: Investment Types / Universe -->
+          <!-- Question 3: Investments You Will Trade -->
           <div class="space-y-3 pt-3 border-t border-slate-100">
             <div class="flex items-center justify-between">
               <label class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                 <span class="w-5 h-5 rounded-full bg-brand-100 text-brand-700 text-[11px] flex items-center justify-center font-bold">3</span>
-                <span>Investments You Will Trade</span>
+                <span>Investments You Want to Trade</span>
               </label>
-              <div class="flex items-center gap-1.5">
-                <span class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 shadow-sm" id="alloc-sum-display">
-                  <i data-lucide="lock" class="w-3 h-3 text-emerald-600"></i>
-                  <span id="alloc-sum-text">Total: 100%</span>
-                </span>
-                <button id="btn-balance-100" type="button" class="text-[10px] font-semibold text-brand-700 hover:text-brand-900 bg-brand-50 hover:bg-brand-100 px-2 py-0.5 rounded border border-brand-200 transition" title="Auto-normalize sliders to exactly 100%">
-                  Auto-Balance
-                </button>
-              </div>
+              <span class="text-[10px] text-brand-700 font-bold bg-brand-50 px-2 py-0.5 rounded border border-brand-200">Step 1: Select Assets</span>
             </div>
 
-            <!-- Quick Allocation Presets -->
-            <div class="flex flex-wrap gap-1.5 pt-0.5">
-              <button type="button" class="alloc-preset-btn text-[10px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-medium border border-slate-200 transition" data-alloc="balanced">Balanced Mix</button>
-              <button type="button" class="alloc-preset-btn text-[10px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-medium border border-slate-200 transition" data-alloc="etfs-only">100% ETFs</button>
-              <button type="button" class="alloc-preset-btn text-[10px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-medium border border-slate-200 transition" data-alloc="funds-only">100% Funds</button>
-              <button type="button" class="alloc-preset-btn text-[10px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-medium border border-slate-200 transition" data-alloc="shares-etfs">50/50 Shares & ETFs</button>
-              <button type="button" class="alloc-preset-btn text-[10px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-medium border border-slate-200 transition" data-alloc="global-stocks">Global Stocks (US/UK)</button>
-            </div>
+            <p class="text-[11px] text-slate-500">Check the investments you plan to trade. Only platforms that completely support your choices will be recommended:</p>
 
-            <p class="text-[11px] text-slate-500">Percentages auto-lock to exactly 100%. Watch for red restrictions on platforms that forbid certain assets:</p>
-
-            <div class="space-y-3 text-xs">
+            <!-- Asset Selector Cards / Checkboxes -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="asset-type-selectors">
               <!-- UK Shares -->
-              <div class="space-y-1">
-                <div class="flex items-center justify-between gap-3">
-                  <span class="text-slate-700 font-medium w-36">UK Shares</span>
-                  <input type="range" id="alloc-uk-shares" min="0" max="100" step="1" value="25" class="flex-1">
-                  <span class="font-bold text-slate-800 w-10 text-right" id="val-uk-shares">25%</span>
+              <label id="card-chk-ukShares" class="asset-card flex items-start gap-2 p-2.5 rounded-xl border border-brand-500 bg-brand-50/40 cursor-pointer transition select-none">
+                <input type="checkbox" id="chk-uk-shares" value="ukShares" class="rounded text-brand-600 focus:ring-brand-500 w-4 h-4 mt-0.5" checked>
+                <div class="text-xs">
+                  <span class="font-bold text-slate-900 block">UK Shares</span>
+                  <span class="text-[10px] text-slate-500 block">FTSE 100, 250, AIM</span>
                 </div>
-                <div class="text-[10px] text-amber-700 font-medium pl-1 flex items-center gap-1">
-                  <span class="text-red-500">✕</span> Not permitted on: <strong>Vanguard</strong> (No single stocks)
-                </div>
-              </div>
+              </label>
 
               <!-- ETFs -->
-              <div class="space-y-1">
-                <div class="flex items-center justify-between gap-3">
-                  <span class="text-slate-700 font-medium w-36">ETFs</span>
-                  <input type="range" id="alloc-etfs" min="0" max="100" step="1" value="35" class="flex-1">
-                  <span class="font-bold text-slate-800 w-10 text-right" id="val-etfs">35%</span>
+              <label id="card-chk-etfs" class="asset-card flex items-start gap-2 p-2.5 rounded-xl border border-brand-500 bg-brand-50/40 cursor-pointer transition select-none">
+                <input type="checkbox" id="chk-etfs" value="etfs" class="rounded text-brand-600 focus:ring-brand-500 w-4 h-4 mt-0.5" checked>
+                <div class="text-xs">
+                  <span class="font-bold text-slate-900 block">ETFs</span>
+                  <span class="text-[10px] text-slate-500 block">Global UCITS ETFs</span>
                 </div>
-                <div class="text-[10px] text-emerald-700 font-medium pl-1 flex items-center gap-1">
-                  <span class="text-emerald-500">✓</span> Permitted on all 6 platforms
-                </div>
-              </div>
+              </label>
 
-              <!-- Unit Trusts / Funds -->
-              <div class="space-y-1">
-                <div class="flex items-center justify-between gap-3">
-                  <div class="w-36 flex items-center gap-1">
-                    <span class="text-slate-700 font-medium">Funds / OEICs</span>
-                    <span title="Traditional mutual funds & unit trusts (e.g. Fundsmith, Vanguard index funds OEIC version). Note: Trading 212 does not support OEIC funds." class="cursor-help text-slate-400">ℹ️</span>
-                  </div>
-                  <input type="range" id="alloc-funds" min="0" max="100" step="1" value="20" class="flex-1">
-                  <span class="font-bold text-slate-800 w-10 text-right" id="val-funds">20%</span>
+              <!-- Funds / OEICs -->
+              <label id="card-chk-funds" class="asset-card flex items-start gap-2 p-2.5 rounded-xl border border-brand-500 bg-brand-50/40 cursor-pointer transition select-none">
+                <input type="checkbox" id="chk-funds" value="funds" class="rounded text-brand-600 focus:ring-brand-500 w-4 h-4 mt-0.5" checked>
+                <div class="text-xs">
+                  <span class="font-bold text-slate-900 block">Funds / OEICs</span>
+                  <span class="text-[10px] text-slate-500 block">Unit trusts, mutual funds</span>
                 </div>
-                <div class="text-[10px] text-red-700 font-medium pl-1 flex items-center gap-1">
-                  <span class="text-red-500">✕</span> Not permitted on: <strong>Trading 212</strong> (No OEIC/Unit Trusts; ETFs only)
-                </div>
-              </div>
+              </label>
 
               <!-- Investment Trusts -->
-              <div class="space-y-1">
-                <div class="flex items-center justify-between gap-3">
-                  <span class="text-slate-700 font-medium w-36">Investment Trusts</span>
-                  <input type="range" id="alloc-it" min="0" max="100" step="1" value="10" class="flex-1">
-                  <span class="font-bold text-slate-800 w-10 text-right" id="val-it">10%</span>
+              <label id="card-chk-investmentTrusts" class="asset-card flex items-start gap-2 p-2.5 rounded-xl border border-brand-500 bg-brand-50/40 cursor-pointer transition select-none">
+                <input type="checkbox" id="chk-it" value="investmentTrusts" class="rounded text-brand-600 focus:ring-brand-500 w-4 h-4 mt-0.5" checked>
+                <div class="text-xs">
+                  <span class="font-bold text-slate-900 block">Inv. Trusts</span>
+                  <span class="text-[10px] text-slate-500 block">Closed-end trusts & REITs</span>
                 </div>
-                <div class="text-[10px] text-amber-700 font-medium pl-1 flex items-center gap-1">
-                  <span class="text-red-500">✕</span> Not permitted on: <strong>Vanguard</strong>
-                </div>
-              </div>
+              </label>
 
               <!-- US Stocks -->
-              <div class="space-y-1">
-                <div class="flex items-center justify-between gap-3">
-                  <div class="w-36 flex items-center gap-1">
-                    <span class="text-slate-700 font-medium">US Stocks</span>
-                    <span title="Apple, Microsoft, Tesla, Nvidia, etc." class="cursor-help text-slate-400">ℹ️</span>
-                  </div>
-                  <input type="range" id="alloc-us" min="0" max="100" step="1" value="10" class="flex-1">
-                  <span class="font-bold text-slate-800 w-10 text-right" id="val-us">10%</span>
+              <label id="card-chk-usStocks" class="asset-card flex items-start gap-2 p-2.5 rounded-xl border border-brand-500 bg-brand-50/40 cursor-pointer transition select-none">
+                <input type="checkbox" id="chk-us" value="usStocks" class="rounded text-brand-600 focus:ring-brand-500 w-4 h-4 mt-0.5" checked>
+                <div class="text-xs">
+                  <span class="font-bold text-slate-900 block">US Stocks</span>
+                  <span class="text-[10px] text-slate-500 block">Apple, Tesla, NYSE</span>
                 </div>
-                <div class="text-[10px] text-amber-700 font-medium pl-1 flex items-center gap-1">
-                  <span class="text-red-500">✕</span> Not permitted on: <strong>Vanguard</strong> (Vanguard-only funds)
+              </label>
+
+              <!-- European Stocks -->
+              <label id="card-chk-europeanStocks" class="asset-card flex items-start gap-2 p-2.5 rounded-xl border border-slate-200 bg-white cursor-pointer transition select-none">
+                <input type="checkbox" id="chk-eu" value="europeanStocks" class="rounded text-brand-600 focus:ring-brand-500 w-4 h-4 mt-0.5">
+                <div class="text-xs">
+                  <span class="font-bold text-slate-900 block">European Stocks</span>
+                  <span class="text-[10px] text-slate-500 block">Euronext, Frankfurt</span>
+                </div>
+              </label>
+            </div>
+
+            <!-- Step 2: Dynamic Percentage Allocation -->
+            <div class="space-y-2 pt-2 border-t border-slate-100">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-bold text-slate-900 block">Step 2: Set Portfolio %</span>
+                  <span class="text-[10px] text-slate-500">Only chosen investments are displayed below</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 shadow-sm" id="alloc-sum-display">
+                    <i data-lucide="lock" class="w-3 h-3 text-emerald-600"></i>
+                    <span id="alloc-sum-text">Total: 100%</span>
+                  </span>
+                  <button id="btn-balance-100" type="button" class="text-[10px] font-semibold text-brand-700 hover:text-brand-900 bg-brand-50 hover:bg-brand-100 px-2 py-0.5 rounded border border-brand-200 transition" title="Equal split across selected investments">
+                    Equal Split
+                  </button>
                 </div>
               </div>
 
-              <!-- European Stocks -->
-              <div class="space-y-1">
-                <div class="flex items-center justify-between gap-3">
-                  <span class="text-slate-700 font-medium w-36">European Stocks</span>
-                  <input type="range" id="alloc-eu" min="0" max="100" step="1" value="0" class="flex-1">
-                  <span class="font-bold text-slate-800 w-10 text-right" id="val-eu">0%</span>
+              <!-- Quick Presets -->
+              <div class="flex flex-wrap gap-1.5 pt-0.5">
+                <button type="button" class="alloc-preset-btn text-[10px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-medium border border-slate-200 transition" data-alloc="balanced">Balanced Mix</button>
+                <button type="button" class="alloc-preset-btn text-[10px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-medium border border-slate-200 transition" data-alloc="etfs-only">100% ETFs</button>
+                <button type="button" class="alloc-preset-btn text-[10px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-medium border border-slate-200 transition" data-alloc="funds-only">100% Funds</button>
+                <button type="button" class="alloc-preset-btn text-[10px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-medium border border-slate-200 transition" data-alloc="shares-etfs">50/50 Shares & ETFs</button>
+                <button type="button" class="alloc-preset-btn text-[10px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-medium border border-slate-200 transition" data-alloc="global-stocks">Global Stocks (US/UK/EU)</button>
+              </div>
+
+              <!-- Active Sliders Container -->
+              <div id="active-sliders-list" class="space-y-2 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <!-- UK Shares -->
+                <div id="slider-row-ukShares" class="space-y-0.5">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-slate-700 font-semibold w-32 truncate">UK Shares</span>
+                    <input type="range" id="alloc-uk-shares" min="1" max="100" step="1" value="25" class="flex-1">
+                    <span class="font-bold text-slate-800 w-12 text-right" id="val-uk-shares">25%</span>
+                  </div>
                 </div>
-                <div class="text-[10px] text-amber-700 font-medium pl-1 flex items-center gap-1">
-                  <span class="text-red-500">✕</span> Not permitted on: <strong>Vanguard</strong> & <strong>Fidelity</strong> (Direct single-stock dealing)
+
+                <!-- ETFs -->
+                <div id="slider-row-etfs" class="space-y-0.5">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-slate-700 font-semibold w-32 truncate">ETFs</span>
+                    <input type="range" id="alloc-etfs" min="1" max="100" step="1" value="35" class="flex-1">
+                    <span class="font-bold text-slate-800 w-12 text-right" id="val-etfs">35%</span>
+                  </div>
+                </div>
+
+                <!-- Funds / OEICs -->
+                <div id="slider-row-funds" class="space-y-0.5">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-slate-700 font-semibold w-32 truncate">Funds / OEICs</span>
+                    <input type="range" id="alloc-funds" min="1" max="100" step="1" value="20" class="flex-1">
+                    <span class="font-bold text-slate-800 w-12 text-right" id="val-funds">20%</span>
+                  </div>
+                </div>
+
+                <!-- Investment Trusts -->
+                <div id="slider-row-investmentTrusts" class="space-y-0.5">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-slate-700 font-semibold w-32 truncate">Investment Trusts</span>
+                    <input type="range" id="alloc-it" min="1" max="100" step="1" value="10" class="flex-1">
+                    <span class="font-bold text-slate-800 w-12 text-right" id="val-it">10%</span>
+                  </div>
+                </div>
+
+                <!-- US Stocks -->
+                <div id="slider-row-usStocks" class="space-y-0.5">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-slate-700 font-semibold w-32 truncate">US Stocks</span>
+                    <input type="range" id="alloc-us" min="1" max="100" step="1" value="10" class="flex-1">
+                    <span class="font-bold text-slate-800 w-12 text-right" id="val-us">10%</span>
+                  </div>
+                </div>
+
+                <!-- European Stocks -->
+                <div id="slider-row-europeanStocks" class="space-y-0.5 hidden">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-slate-700 font-semibold w-32 truncate">European Stocks</span>
+                    <input type="range" id="alloc-eu" min="1" max="100" step="1" value="0" class="flex-1">
+                    <span class="font-bold text-slate-800 w-12 text-right" id="val-eu">0%</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -511,8 +556,18 @@
 
         <!-- TAB 1: ALL RANKED PLATFORMS LEADERBOARD -->
         <div id="tab-leaderboard" class="tab-content space-y-4">
+          <!-- Live Compatibility Counter / Filter Status -->
+          <div id="compatibility-status-bar" class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <!-- Injected via app.js -->
+          </div>
+
           <div id="platform-cards-container" class="space-y-4">
-            <!-- Dynamic cards injected via JavaScript -->
+            <!-- Dynamic cards injected via JavaScript (Only completely compatible platforms) -->
+          </div>
+
+          <!-- Excluded Platforms Section -->
+          <div id="excluded-platforms-container">
+            <!-- Injected via app.js -->
           </div>
         </div>
 
