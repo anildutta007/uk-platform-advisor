@@ -434,47 +434,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // MAIN CALCULATION & RENDERING LOOP
   function calculateAndRender() {
-    const inputs = getCurrentInputs();
-
-    // Update summary badges
-    const totalLump = inputs.lumpSums.isa + inputs.lumpSums.sipp + inputs.lumpSums.gia;
-    const totalMonthly = inputs.monthlyContrib.isa + inputs.monthlyContrib.sipp + inputs.monthlyContrib.gia;
-    totalPotDisplay.textContent = `Total: ${formatGbpInt(totalLump)}`;
-    totalMonthlyDisplay.textContent = `${formatGbpInt(totalMonthly)} / month`;
-
-    // Run comparison engine
-    const rankedPlatforms = PlatformCalculator.compareAllPlatforms(inputs);
-
-    // 1. Render Winner Spotlight
-    const winner = rankedPlatforms[0];
-    if (winner) {
-      winnerName.textContent = winner.platform.name;
-      winnerTagline.textContent = winner.platform.tagline;
-      winnerAnnualFee.textContent = formatGbp(winner.yearOneTotalFee);
-      winnerEffectivePct.textContent = `${winner.effectiveFeePct.toFixed(2)}% annual fee drag`;
-      winnerScoreBadge.textContent = `Match Score: ${winner.suitabilityScore}/100`;
-
-      if (winner.keyReasons && winner.keyReasons.length) {
-        winnerBullet.innerHTML = `
-          <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
-          <span>${winner.keyReasons[0].text}</span>
-        `;
+    try {
+      if (typeof PlatformCalculator === 'undefined' || !PlatformCalculator.compareAllPlatforms) {
+        console.error('PlatformCalculator engine not ready yet.');
+        return;
       }
-      winnerLink.href = winner.platform.officialUrl;
-    }
 
-    // 2. Render Platform Leaderboard Cards
-    renderPlatformCards(rankedPlatforms);
+      const inputs = getCurrentInputs();
 
-    // 3. Render Fee Breakdown Table
-    renderBreakdownTable(rankedPlatforms);
+      // Update summary badges
+      const totalLump = inputs.lumpSums.isa + inputs.lumpSums.sipp + inputs.lumpSums.gia;
+      const totalMonthly = inputs.monthlyContrib.isa + inputs.monthlyContrib.sipp + inputs.monthlyContrib.gia;
+      if (totalPotDisplay) totalPotDisplay.textContent = `Total: ${formatGbpInt(totalLump)}`;
+      if (totalMonthlyDisplay) totalMonthlyDisplay.textContent = `${formatGbpInt(totalMonthly)} / month`;
 
-    // 4. Render Charts
-    renderCharts(rankedPlatforms, inputs);
+      // Run comparison engine
+      const rankedPlatforms = PlatformCalculator.compareAllPlatforms(inputs);
 
-    // Refresh icons
-    if (window.lucide) {
-      window.lucide.createIcons();
+      // 1. Render Winner Spotlight
+      const winner = rankedPlatforms[0];
+      if (winner && winnerName) {
+        winnerName.textContent = winner.platform.name;
+        if (winnerTagline) winnerTagline.textContent = winner.platform.tagline;
+        if (winnerAnnualFee) winnerAnnualFee.textContent = formatGbp(winner.yearOneTotalFee);
+        if (winnerEffectivePct) winnerEffectivePct.textContent = `${winner.effectiveFeePct.toFixed(2)}% annual fee drag`;
+        if (winnerScoreBadge) winnerScoreBadge.textContent = `Match Score: ${winner.suitabilityScore}/100`;
+
+        if (winner.keyReasons && winner.keyReasons.length && winnerBullet) {
+          winnerBullet.innerHTML = `
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+            <span>${winner.keyReasons[0].text}</span>
+          `;
+        }
+        if (winnerLink) winnerLink.href = winner.platform.officialUrl;
+      }
+
+      // 2. Render Platform Leaderboard Cards
+      renderPlatformCards(rankedPlatforms);
+
+      // 3. Render Fee Breakdown Table
+      renderBreakdownTable(rankedPlatforms);
+
+      // 4. Render Charts
+      renderCharts(rankedPlatforms, inputs);
+
+      // Refresh icons
+      if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons();
+      }
+    } catch (err) {
+      console.error('Calculation and rendering failed:', err);
     }
   }
 
@@ -697,6 +706,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Render Charts
   function renderCharts(rankedPlatforms, inputs) {
+    if (typeof Chart === 'undefined') {
+      console.warn('Chart.js CDN is not loaded yet');
+      return;
+    }
+
     // 1. Compounding Fee Drag Chart
     const horizon = inputs.horizonYears;
     const yearLabels = Array.from({ length: horizon }, (_, i) => `Yr ${i + 1}`);
@@ -715,11 +729,13 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     });
 
-    const ctxCompounding = document.getElementById('chart-compounding-drag').getContext('2d');
-    if (compoundingDragChart) {
-      compoundingDragChart.destroy();
-    }
-    compoundingDragChart = new Chart(ctxCompounding, {
+    const canvasCompounding = document.getElementById('chart-compounding-drag');
+    if (canvasCompounding) {
+      const ctxCompounding = canvasCompounding.getContext('2d');
+      if (compoundingDragChart) {
+        compoundingDragChart.destroy();
+      }
+      compoundingDragChart = new Chart(ctxCompounding, {
       type: 'line',
       data: {
         labels: yearLabels,
@@ -752,6 +768,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     });
+  }
 
     // 2. Fee Crossover Curve by Pot Size
     const crossoverData = PlatformCalculator.generateCrossoverData(inputs);
@@ -766,11 +783,13 @@ document.addEventListener('DOMContentLoaded', () => {
       pointRadius: 3
     }));
 
-    const ctxCrossover = document.getElementById('chart-crossover').getContext('2d');
-    if (crossoverChart) {
-      crossoverChart.destroy();
-    }
-    crossoverChart = new Chart(ctxCrossover, {
+    const canvasCrossover = document.getElementById('chart-crossover');
+    if (canvasCrossover) {
+      const ctxCrossover = canvasCrossover.getContext('2d');
+      if (crossoverChart) {
+        crossoverChart.destroy();
+      }
+      crossoverChart = new Chart(ctxCrossover, {
       type: 'line',
       data: {
         labels: crossoverData.labels,
@@ -803,6 +822,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     });
+  }
   }
 
   // Initialize with 'balanced' preset

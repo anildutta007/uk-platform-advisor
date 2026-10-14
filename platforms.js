@@ -478,6 +478,15 @@ const PLATFORMS_DATA = [
   }
 ];
 
+if (typeof window !== 'undefined') {
+  window.PLATFORMS_DATA = PLATFORMS_DATA;
+}
+if (typeof self !== 'undefined') {
+  self.PLATFORMS_DATA = PLATFORMS_DATA;
+}
+if (typeof globalThis !== 'undefined') {
+  globalThis.PLATFORMS_DATA = PLATFORMS_DATA;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { PLATFORMS_DATA };
 }

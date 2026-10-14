@@ -11,11 +11,19 @@
   } else if (typeof module === 'object' && module.exports) {
     module.exports = factory(require('./platforms'));
   } else {
-    root.PlatformCalculator = factory({ PLATFORMS_DATA: root.PLATFORMS_DATA });
+    var pData = (typeof PLATFORMS_DATA !== 'undefined' ? PLATFORMS_DATA :
+                (root && root.PLATFORMS_DATA ? root.PLATFORMS_DATA :
+                (typeof window !== 'undefined' && window.PLATFORMS_DATA ? window.PLATFORMS_DATA :
+                (typeof globalThis !== 'undefined' && globalThis.PLATFORMS_DATA ? globalThis.PLATFORMS_DATA : []))));
+    var calc = factory({ PLATFORMS_DATA: pData });
+    if (root) root.PlatformCalculator = calc;
+    if (typeof window !== 'undefined') window.PlatformCalculator = calc;
+    if (typeof self !== 'undefined') self.PlatformCalculator = calc;
+    if (typeof globalThis !== 'undefined') globalThis.PlatformCalculator = calc;
   }
-}(typeof self !== 'undefined' ? self : this, function (platformsModule) {
+}(typeof self !== 'undefined' ? self : (typeof window !== 'undefined' ? window : this), function (platformsModule) {
 
-  const PLATFORMS_DATA = platformsModule.PLATFORMS_DATA;
+  const PLATFORMS_DATA = platformsModule.PLATFORMS_DATA || (typeof PLATFORMS_DATA !== 'undefined' ? PLATFORMS_DATA : []);
 
   /**
    * Calculate tiered fee on an amount based on brackets
