@@ -86,14 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const valReturnDisplay = document.getElementById('val-return-display');
 
   // Output containers
-  const winnerName = document.getElementById('winner-name');
-  const winnerTagline = document.getElementById('winner-tagline');
-  const winnerAnnualFee = document.getElementById('winner-annual-fee');
-  const winnerEffectivePct = document.getElementById('winner-effective-pct');
-  const winnerScoreBadge = document.getElementById('winner-score-badge');
-  const winnerBullet = document.getElementById('winner-bullet');
-  const winnerLink = document.getElementById('winner-link');
-
   const platformCardsContainer = document.getElementById('platform-cards-container');
   const tableBreakdownBody = document.getElementById('table-breakdown-body');
 
@@ -650,34 +642,13 @@ document.addEventListener('DOMContentLoaded', () => {
       // Run comparison engine
       const rankedPlatforms = PlatformCalculator.compareAllPlatforms(inputs);
 
-      // 1. Render Winner Spotlight
-      const winner = rankedPlatforms[0];
-      if (winner && winnerName) {
-        winnerName.textContent = winner.platform.name;
-        if (winnerTagline) winnerTagline.textContent = winner.platform.tagline;
-        if (winnerAnnualFee) winnerAnnualFee.textContent = formatGbp(winner.yearOneTotalFee);
-        if (winnerEffectivePct) winnerEffectivePct.textContent = `${winner.effectiveFeePct.toFixed(2)}% annual fee drag`;
-        if (winnerScoreBadge) winnerScoreBadge.textContent = `Match Score: ${winner.suitabilityScore}/100`;
-
-        if (winner.keyReasons && winner.keyReasons.length && winnerBullet) {
-          winnerBullet.innerHTML = `
-            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
-            <span>${winner.keyReasons[0].text}</span>
-          `;
-        }
-        if (winnerLink) winnerLink.href = winner.platform.officialUrl;
-
-        // Render winner permissions & not-permitted callout
-        renderWinnerPermissions(winner);
-      }
-
-      // 2. Render Platform Leaderboard Cards
+      // 1. Render Platform Leaderboard Cards
       renderPlatformCards(rankedPlatforms);
 
-      // 3. Render Fee Breakdown Table
+      // 2. Render Fee Breakdown Table
       renderBreakdownTable(rankedPlatforms);
 
-      // 4. Render Charts
+      // 3. Render Charts
       renderCharts(rankedPlatforms, inputs);
 
       // Refresh icons
@@ -687,59 +658,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       console.error('Calculation and rendering failed:', err);
     }
-  }
-
-  // Render Winner Investment Permissions & Not-Permitted Callouts
-  // Render Winner Investment Permissions & Confirmation
-  function renderWinnerPermissions(winner) {
-    const container = document.getElementById('winner-permissions-container');
-    if (!container) return;
-
-    const p = winner.platform;
-    const perms = p.investmentPermissions || {};
-
-    const assetKeys = [
-      { key: 'ukShares', label: 'UK Shares' },
-      { key: 'etfs', label: 'ETFs' },
-      { key: 'funds', label: 'Funds / OEICs' },
-      { key: 'investmentTrusts', label: 'Inv. Trusts' },
-      { key: 'usStocks', label: 'US Stocks' },
-      { key: 'europeanStocks', label: 'EU Stocks' }
-    ];
-
-    const pillsHtml = assetKeys.map(asset => {
-      const isAllowed = perms[asset.key]?.permitted ?? true;
-      if (isAllowed) {
-        return `
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 shadow-sm">
-            <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>${asset.label}</span>
-          </span>
-        `;
-      } else {
-        return `
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-normal bg-slate-800 text-slate-400 border border-slate-700 shadow-sm">
-            <i data-lucide="minus" class="w-3.5 h-3.5 text-slate-500"></i>
-            <span class="line-through decoration-slate-500">${asset.label}</span>
-          </span>
-        `;
-      }
-    }).join('');
-
-    container.innerHTML = `
-      <div class="space-y-2">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-slate-300">
-          <span class="font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
-            <span>100% Satisfies All Your Chosen Investments</span>
-          </span>
-          <span class="text-slate-400 text-[10px]">Permitted on ${p.shortName}</span>
-        </div>
-        <div class="flex flex-wrap gap-1.5">
-          ${pillsHtml}
-        </div>
-      </div>
-    `;
   }
 
   // Render Leaderboard Cards (Only completely compatible platforms)
