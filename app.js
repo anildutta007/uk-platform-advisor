@@ -766,59 +766,20 @@ document.addEventListener('DOMContentLoaded', () => {
           </span>`;
         }
 
-        // Key reason bullet
-        const keyReasonHtml = result.keyReasons && result.keyReasons.length ? `
-          <div class="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-start gap-2">
-            <i data-lucide="sparkle" class="w-4 h-4 text-brand-600 shrink-0 mt-0.5"></i>
-            <span class="font-medium">${result.keyReasons[0].text}</span>
-          </div>
-        ` : '';
-
-        // Universe pills for platform card (full text, no truncation)
-        const assetKeys = [
-          { key: 'ukShares', label: 'UK Shares' },
-          { key: 'etfs', label: 'ETFs' },
-          { key: 'funds', label: 'Funds / OEICs' },
-          { key: 'investmentTrusts', label: 'Inv. Trusts' },
-          { key: 'usStocks', label: 'US Stocks' },
-          { key: 'europeanStocks', label: 'EU Stocks' }
-        ];
-
-        const universePills = assetKeys.map(a => {
-          const perm = p.investmentPermissions && p.investmentPermissions[a.key];
-          const allowed = perm ? perm.permitted : true;
-          if (allowed) {
-            return `
-              <div class="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center gap-1.5 shadow-2xs" title="${perm?.detail || 'Allowed'}">
-                <span class="font-medium text-emerald-900 text-[11px] whitespace-nowrap">${a.label}</span>
-                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
-              </div>
-            `;
-          } else {
-            return `
-              <div class="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-400 flex items-center gap-1.5 shadow-2xs" title="${perm?.detail || 'Not Permitted'}">
-                <span class="font-normal text-slate-400 line-through text-[11px] whitespace-nowrap">${a.label}</span>
-                <i data-lucide="minus" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
-              </div>
-            `;
-          }
-        }).join('');
-
         card.innerHTML = `
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div class="space-y-1">
+            <div class="space-y-1.5">
               <div class="flex items-center gap-2 flex-wrap">
                 ${badgeHtml}
                 <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
                   <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-600"></i>
-                  <span>100% Satisfies Selected Criteria</span>
+                  <span>100% Criteria Match</span>
                 </span>
                 <span class="text-xs font-semibold px-2 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-100">
                   ${p.badge}
                 </span>
               </div>
-              <h4 class="text-lg font-bold text-slate-900">${p.name}</h4>
-              <p class="text-xs text-slate-500">${p.tagline}</p>
+              <h4 class="text-xl font-bold text-slate-900">${p.name}</h4>
             </div>
 
             <div class="text-right sm:border-l sm:border-slate-100 sm:pl-4 min-w-[145px]">
@@ -831,8 +792,6 @@ document.addEventListener('DOMContentLoaded', () => {
               </span>
             </div>
           </div>
-
-          ${keyReasonHtml}
 
           <!-- Quick 4-box metrics (Monthly with Annual reference) -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-xs">
@@ -855,24 +814,6 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="text-[10px] text-slate-400 font-bold uppercase block">FX Fees</span>
               <span class="font-bold text-slate-800">${formatGbp(isMonthly ? monthlyFx : result.fxFee)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
               <span class="text-[10px] text-slate-400 block">${isMonthly ? `${formatGbp(result.fxFee)}/yr` : `${formatGbp(monthlyFx)}/mo`}</span>
-            </div>
-          </div>
-
-          <!-- Investment Universe Permissions -->
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
-                <i data-lucide="layers" class="w-4 h-4 text-brand-600"></i>
-                <span>Supported Asset Universe</span>
-              </span>
-              <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <i data-lucide="check" class="w-3 h-3 text-emerald-600"></i>
-                <span>Permits All Your Selected Assets</span>
-              </span>
-            </div>
-
-            <div class="flex flex-wrap gap-1.5 text-[11px]">
-              ${universePills}
             </div>
           </div>
 
