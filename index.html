@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en-GB" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UK Investment Platform Advisor | ISA, SIPP & Trading Fee Comparison Engine</title>
+  <meta name="description" content="Impartial UK fee comparison and recommendation engine for AJ Bell, Interactive Investor, Hargreaves Lansdown, Trading 212, Fidelity, and Vanguard.">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
+
+  <!-- Top Announcement Bar -->
+  <aside aria-label="UK fee schedule announcement" class="bg-gradient-to-r from-slate-900 via-brand-900 to-slate-900 text-white text-xs py-2 px-4 text-center font-medium border-b border-slate-800">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <span class="flex items-center gap-1.5 mx-auto">
+        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+        <span>Independent, impartial UK platform analysis — updated for 2026/2027 fee schedules and FCA compliance rules.</span>
+      </span>
+      <a href="../anil-portal/static/index.html" class="hidden md:inline-flex items-center gap-1 text-slate-300 hover:text-white underline text-xs">
+        <span>Anil Dutta Portal</span>
+        <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Navigation Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-500 flex items-center justify-center text-white shadow-md">
+          <i data-lucide="compass" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-bold tracking-tight text-slate-900">UK Investment Platform Advisor</h1>
+            <span class="bg-brand-50 text-brand-700 border border-brand-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">v2.0</span>
+          </div>
+          <p class="text-xs text-slate-500">ISA • SIPP Pension • General Trading (GIA) Decision Engine</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button id="btn-print" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition" title="Print or save as PDF">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span>Export Summary</span>
+        </button>
+        <button id="btn-reset" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Reset Defaults</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Preset Scenarios Quick Bar -->
+    <section class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="p-1.5 rounded-lg bg-amber-50 text-amber-600">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </span>
+          <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Fast Presets:</span>
+          <span class="text-xs text-slate-500 hidden md:inline">Click a profile to auto-fill common investor profiles:</span>
+        </div>
+        <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+          <button class="preset-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 border border-slate-200 transition flex items-center gap-1.5" data-preset="balanced">
+            <span>⚖️ Balanced (£40k ISA/SIPP)</span>
+          </button>
+          <button class="preset-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 border border-slate-200 transition flex items-center gap-1.5" data-preset="company-director">
+            <span>🏢 Company SIPP (£60k+)</span>
+          </button>
+          <button class="preset-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 border border-slate-200 transition flex items-center gap-1.5" data-preset="active-trader">
+            <span>📈 Global Trader (US/UK)</span>
+          </button>
+          <button class="preset-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 border border-slate-200 transition flex items-center gap-1.5" data-preset="passive-index">
+            <span>🌱 Passive Saver (ETFs/Funds)</span>
+          </button>
+          <button class="preset-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 border border-slate-200 transition flex items-center gap-1.5" data-preset="high-net-worth">
+            <span>💎 High Wealth (£200k+)</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Two-Column Workspace: Controls & Interactive Results -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- LEFT COLUMN: Questionnaire & Criteria Controls (5 cols) -->
+      <section class="lg:col-span-5 space-y-5">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-6">
+          
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="sliders" class="w-4 h-4 text-brand-600"></i>
+              <span>Your Investment Profile</span>
+            </h2>
+            <span class="text-[11px] font-medium text-slate-500">Live recalculation</span>
+          </div>
+
+          <!-- Question 1: Account Selection & Lump Sums -->
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-full bg-brand-100 text-brand-700 text-[11px] flex items-center justify-center font-bold">1</span>
+                <span>Select Account Types & Lump Sum</span>
+              </label>
+              <span class="text-xs text-brand-600 font-semibold" id="total-pot-display">Total: £30,000</span>
+            </div>
+
+            <!-- ISA Toggle & Lump Sum -->
+            <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="account-isa" checked class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500">
+                  <span class="text-xs font-semibold text-slate-800">Stocks & Shares ISA</span>
+                </label>
+                <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1">
+                  <span class="text-xs text-slate-400">£</span>
+                  <input type="number" id="lump-isa" value="20000" min="0" step="1000" class="w-24 text-right text-xs font-bold text-slate-800 focus:outline-none">
+                </div>
+              </div>
+              <input type="range" id="slider-lump-isa" min="0" max="100000" step="1000" value="20000" class="w-full">
+            </div>
+
+            <!-- SIPP Toggle & Lump Sum -->
+            <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="account-sipp" checked class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500">
+                  <span class="text-xs font-semibold text-slate-800">SIPP (Self-Invested Pension)</span>
+                </label>
+                <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1">
+                  <span class="text-xs text-slate-400">£</span>
+                  <input type="number" id="lump-sipp" value="10000" min="0" step="1000" class="w-24 text-right text-xs font-bold text-slate-800 focus:outline-none">
+                </div>
+              </div>
+              <input type="range" id="slider-lump-sipp" min="0" max="250000" step="5000" value="10000" class="w-full">
+            </div>
+
+            <!-- GIA Toggle & Lump Sum -->
+            <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="account-gia" class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500">
+                  <span class="text-xs font-semibold text-slate-800">General Trading Account (GIA)</span>
+                </label>
+                <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1">
+                  <span class="text-xs text-slate-400">£</span>
+                  <input type="number" id="lump-gia" value="0" min="0" step="1000" class="w-24 text-right text-xs font-bold text-slate-800 focus:outline-none">
+                </div>
+              </div>
+              <input type="range" id="slider-lump-gia" min="0" max="100000" step="1000" value="0" class="w-full">
+            </div>
+          </div>
+
+          <!-- Question 5: Monthly Regular Investments -->
+          <div class="space-y-3 pt-3 border-t border-slate-100">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-full bg-brand-100 text-brand-700 text-[11px] flex items-center justify-center font-bold">2</span>
+                <span>Monthly Regular Investments</span>
+              </label>
+              <span class="text-xs text-emerald-600 font-semibold" id="total-monthly-display">£400 / month</span>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-2">
+              <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center">
+                <span class="text-[10px] uppercase font-bold text-slate-500 block">ISA / mo</span>
+                <div class="flex items-center justify-center gap-0.5 mt-1">
+                  <span class="text-xs text-slate-400">£</span>
+                  <input type="number" id="monthly-isa" value="250" min="0" step="50" class="w-14 text-center text-xs font-bold bg-transparent text-slate-800 focus:outline-none border-b border-slate-300">
+                </div>
+              </div>
+              <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center">
+                <span class="text-[10px] uppercase font-bold text-slate-500 block">SIPP / mo</span>
+                <div class="flex items-center justify-center gap-0.5 mt-1">
+                  <span class="text-xs text-slate-400">£</span>
+                  <input type="number" id="monthly-sipp" value="150" min="0" step="50" class="w-14 text-center text-xs font-bold bg-transparent text-slate-800 focus:outline-none border-b border-slate-300">
+                </div>
+              </div>
+              <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center">
+                <span class="text-[10px] uppercase font-bold text-slate-500 block">GIA / mo</span>
+                <div class="flex items-center justify-center gap-0.5 mt-1">
+                  <span class="text-xs text-slate-400">£</span>
+                  <input type="number" id="monthly-gia" value="0" min="0" step="50" class="w-14 text-center text-xs font-bold bg-transparent text-slate-800 focus:outline-none border-b border-slate-300">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Question 3: Investment Types / Universe -->
+          <div class="space-y-3 pt-3 border-t border-slate-100">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-full bg-brand-100 text-brand-700 text-[11px] flex items-center justify-center font-bold">3</span>
+                <span>Investments You Will Trade</span>
+              </label>
+              <span class="text-[11px] text-slate-500 font-medium" id="alloc-sum-display">Total: 100%</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Different platforms have completely different fee caps for shares vs mutual funds:</p>
+
+            <div class="space-y-2.5 text-xs">
+              <!-- UK Shares -->
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-slate-700 font-medium w-36">UK Shares</span>
+                <input type="range" id="alloc-uk-shares" min="0" max="100" step="5" value="25" class="flex-1">
+                <span class="font-bold text-slate-800 w-10 text-right" id="val-uk-shares">25%</span>
+              </div>
+              <!-- ETFs -->
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-slate-700 font-medium w-36">ETFs</span>
+                <input type="range" id="alloc-etfs" min="0" max="100" step="5" value="35" class="flex-1">
+                <span class="font-bold text-slate-800 w-10 text-right" id="val-etfs">35%</span>
+              </div>
+              <!-- Unit Trusts / Funds -->
+              <div class="flex items-center justify-between gap-3">
+                <div class="w-36 flex items-center gap-1">
+                  <span class="text-slate-700 font-medium">Funds / OEICs</span>
+                  <span title="Mutual funds / unit trusts (e.g. Fundsmith, Vanguard index funds). Note: Trading 212 does not support OEIC funds." class="cursor-help text-slate-400">ℹ️</span>
+                </div>
+                <input type="range" id="alloc-funds" min="0" max="100" step="5" value="20" class="flex-1">
+                <span class="font-bold text-slate-800 w-10 text-right" id="val-funds">20%</span>
+              </div>
+              <!-- Investment Trusts -->
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-slate-700 font-medium w-36">Investment Trusts</span>
+                <input type="range" id="alloc-it" min="0" max="100" step="5" value="10" class="flex-1">
+                <span class="font-bold text-slate-800 w-10 text-right" id="val-it">10%</span>
+              </div>
+              <!-- US Stocks -->
+              <div class="flex items-center justify-between gap-3">
+                <div class="w-36 flex items-center gap-1">
+                  <span class="text-slate-700 font-medium">US Stocks</span>
+                  <span title="Apple, Microsoft, Tesla, etc." class="cursor-help text-slate-400">ℹ️</span>
+                </div>
+                <input type="range" id="alloc-us" min="0" max="100" step="5" value="10" class="flex-1">
+                <span class="font-bold text-slate-800 w-10 text-right" id="val-us">10%</span>
+              </div>
+              <!-- European Stocks -->
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-slate-700 font-medium w-36">European Stocks</span>
+                <input type="range" id="alloc-eu" min="0" max="100" step="5" value="0" class="flex-1">
+                <span class="font-bold text-slate-800 w-10 text-right" id="val-eu">0%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Question 2 & 4: Trading Frequency & Overseas Stocks -->
+          <div class="space-y-3 pt-3 border-t border-slate-100">
+            <label class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-brand-100 text-brand-700 text-[11px] flex items-center justify-center font-bold">4</span>
+              <span>Trading Frequency & Overseas FX</span>
+            </label>
+
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                <span class="text-[11px] font-semibold text-slate-600 block">UK Share / ETF Trades</span>
+                <div class="flex items-center justify-between">
+                  <input type="range" id="trades-uk" min="0" max="50" step="1" value="6" class="w-20">
+                  <span class="font-bold text-slate-800" id="val-trades-uk">6 / yr</span>
+                </div>
+              </div>
+
+              <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                <span class="text-[11px] font-semibold text-slate-600 block">Fund Buy / Sells</span>
+                <div class="flex items-center justify-between">
+                  <input type="range" id="trades-funds" min="0" max="30" step="1" value="2" class="w-20">
+                  <span class="font-bold text-slate-800" id="val-trades-funds">2 / yr</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Overseas Trading Details -->
+            <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-100 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-semibold text-blue-900">US & European Trades per Year:</span>
+                <span class="font-bold text-blue-900" id="val-trades-overseas">4 trades</span>
+              </div>
+              <input type="range" id="trades-overseas" min="0" max="40" step="1" value="4" class="w-full">
+              
+              <div class="flex items-center justify-between text-xs pt-1">
+                <span class="text-slate-600">Average Trade Value:</span>
+                <div class="flex items-center gap-1 bg-white border border-slate-200 rounded px-2 py-0.5">
+                  <span class="text-slate-400">£</span>
+                  <input type="number" id="trade-size-overseas" value="1000" min="100" step="250" class="w-16 text-right font-bold text-slate-800 focus:outline-none">
+                </div>
+              </div>
+              <p class="text-[10px] text-blue-700">FX fees range from 0.15% (Trading 212) up to 1.00% (HL). High foreign volume heavily penalizes high-FX brokers.</p>
+            </div>
+          </div>
+
+          <!-- Question 6 & 7: Pension SIPP Rules & Employer Contributions -->
+          <div class="space-y-3 pt-3 border-t border-slate-100" id="sipp-options-container">
+            <label class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-brand-100 text-brand-700 text-[11px] flex items-center justify-center font-bold">5</span>
+              <span>Pension Contribution & Withdrawal Rules</span>
+            </label>
+
+            <!-- Company Contribution Switch (CRITICAL UK RULE) -->
+            <div class="p-3 rounded-xl border border-amber-200 bg-amber-50/60 space-y-2">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-bold text-amber-950 flex items-center gap-1">
+                    <span>Company / Employer Contributions?</span>
+                  </span>
+                  <p class="text-[10px] text-amber-800">Will your Ltd Company or employer pay into this SIPP?</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="sipp-employer-contrib" class="sr-only peer">
+                  <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-600"></div>
+                </label>
+              </div>
+              <div id="employer-contrib-warning" class="hidden text-[11px] text-red-700 font-medium bg-red-50 p-2 rounded-lg border border-red-200">
+                ⚠️ <strong>Key Incompatibility Alert:</strong> Vanguard UK SIPP and Trading 212 SIPP currently <u>do not accept employer contributions</u>. Enabling this will disqualify them from your SIPP recommendations.
+              </div>
+            </div>
+
+            <!-- Pension Withdrawal Mode -->
+            <div class="space-y-1 text-xs">
+              <span class="text-slate-700 font-medium">How do you plan to withdraw your pension?</span>
+              <select id="pension-withdrawal" class="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="accumulation" selected>Accumulation Phase (Growth / Not withdrawing yet)</option>
+                <option value="flexible_drawdown">Flexible Drawdown (Regular monthly/quarterly income)</option>
+                <option value="lump_sum">Uncrystallised Lump Sums (UFPLS)</option>
+                <option value="annuity">Purchasing an Annuity</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Question 8: Horizon & Compounding Growth -->
+          <div class="space-y-3 pt-3 border-t border-slate-100">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-full bg-brand-100 text-brand-700 text-[11px] flex items-center justify-center font-bold">6</span>
+                <span>Investment Horizon & Expected Return</span>
+              </label>
+              <span class="text-xs text-brand-600 font-bold" id="val-horizon">10 Years</span>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-slate-600">Investing Horizon:</span>
+                <input type="range" id="horizon-years" min="1" max="25" step="1" value="10" class="flex-1">
+                <span class="font-bold text-slate-800 w-12 text-right" id="val-horizon-display">10 yrs</span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-slate-600">Assumed Annual Return:</span>
+                <input type="range" id="expected-return" min="2" max="10" step="0.5" value="6" class="flex-1">
+                <span class="font-bold text-slate-800 w-12 text-right" id="val-return-display">6.0%</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: Recommendations, Leaderboard & Deep Dive Charts (7 cols) -->
+      <section class="lg:col-span-7 space-y-6">
+
+        <!-- WINNER SPOTLIGHT BANNER -->
+        <div id="winner-banner" class="bg-gradient-to-br from-slate-900 via-brand-950 to-slate-900 text-white rounded-2xl p-6 shadow-lg border border-slate-800 relative overflow-hidden">
+          <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl"></div>
+          
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                  <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                  <span>#1 RECOMMENDED PLATFORM</span>
+                </span>
+                <span class="text-xs text-slate-400" id="winner-score-badge">Match: 95%</span>
+              </div>
+              <h3 class="text-2xl font-extrabold tracking-tight" id="winner-name">Calculating...</h3>
+              <p class="text-xs text-slate-300 max-w-md" id="winner-tagline">Comparing platform custody, trading commissions, and FX fees...</p>
+            </div>
+
+            <div class="text-right sm:border-l sm:border-slate-800 sm:pl-6 space-y-1">
+              <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold block">Estimated Year 1 Cost</span>
+              <div class="text-3xl font-extrabold text-emerald-400" id="winner-annual-fee">£0.00</div>
+              <span class="text-[11px] text-slate-400 block" id="winner-effective-pct">0.00% annual drag</span>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs relative z-10">
+            <div class="flex items-center gap-2 text-slate-300" id="winner-bullet">
+              <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+              <span>Lowest total cost for your exact asset mix and contribution schedule.</span>
+            </div>
+            <a id="winner-link" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-semibold text-xs">
+              <span>View Official Site</span>
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs for Analysis Views -->
+        <div class="flex border-b border-slate-200 space-x-1 sm:space-x-4 text-xs font-semibold overflow-x-auto pb-px">
+          <button class="nav-tab active-tab px-3 py-2 text-brand-600 border-b-2 border-brand-600 flex items-center gap-1.5 whitespace-nowrap" data-tab="tab-leaderboard">
+            <i data-lucide="list-ordered" class="w-4 h-4"></i>
+            <span>All 6 Ranked Platforms</span>
+          </button>
+          <button class="nav-tab px-3 py-2 text-slate-500 hover:text-slate-800 flex items-center gap-1.5 whitespace-nowrap" data-tab="tab-fee-breakdown">
+            <i data-lucide="pie-chart" class="w-4 h-4"></i>
+            <span>Fee Breakdown Table</span>
+          </button>
+          <button class="nav-tab px-3 py-2 text-slate-500 hover:text-slate-800 flex items-center gap-1.5 whitespace-nowrap" data-tab="tab-charts">
+            <i data-lucide="trending-up" class="w-4 h-4"></i>
+            <span>Compounding Drag & Crossover</span>
+          </button>
+          <button class="nav-tab px-3 py-2 text-slate-500 hover:text-slate-800 flex items-center gap-1.5 whitespace-nowrap" data-tab="tab-matrix">
+            <i data-lucide="table" class="w-4 h-4"></i>
+            <span>Feature Matrix</span>
+          </button>
+        </div>
+
+        <!-- TAB 1: ALL RANKED PLATFORMS LEADERBOARD -->
+        <div id="tab-leaderboard" class="tab-content space-y-4">
+          <div id="platform-cards-container" class="space-y-4">
+            <!-- Dynamic cards injected via JavaScript -->
+          </div>
+        </div>
+
+        <!-- TAB 2: DETAILED FEE BREAKDOWN TABLE -->
+        <div id="tab-fee-breakdown" class="tab-content hidden space-y-4">
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900">Annual Fee Decomposition (£/year)</h3>
+                <p class="text-xs text-slate-500">Transparent breakdown of Platform Custody, Dealing Commissions, Regular Investing, and FX Fees</p>
+              </div>
+              <span class="text-xs font-semibold text-slate-500">Year 1 Simulation</span>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 uppercase text-[10px] tracking-wider">
+                  <tr>
+                    <th class="py-3 px-4">Platform</th>
+                    <th class="py-3 px-3 text-right">ISA Custody</th>
+                    <th class="py-3 px-3 text-right">SIPP Custody</th>
+                    <th class="py-3 px-3 text-right">Dealing Fees</th>
+                    <th class="py-3 px-3 text-right">Regular Inv.</th>
+                    <th class="py-3 px-3 text-right">FX Fees</th>
+                    <th class="py-3 px-4 text-right bg-brand-50 text-brand-900">Total Year 1</th>
+                    <th class="py-3 px-4 text-right">5-Yr Total</th>
+                  </tr>
+                </thead>
+                <tbody id="table-breakdown-body" class="divide-y divide-slate-100 font-medium">
+                  <!-- Injected via app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl text-xs text-blue-900 space-y-1">
+            <span class="font-bold flex items-center gap-1.5">
+              <i data-lucide="info" class="w-4 h-4 text-blue-600"></i>
+              <span>UK Platform Fee Principles to Remember:</span>
+            </span>
+            <ul class="list-disc list-inside space-y-0.5 text-blue-800 text-[11px] pt-1">
+              <li><strong>Flat fee vs Percentage:</strong> Percentage fee platforms (Vanguard 0.15%, AJ Bell 0.25%, HL 0.45%) are cheap for portfolios under £30k-£50k. As wealth exceeds £60k-£100k, flat subscriptions (like Interactive Investor) or capped platforms (AJ Bell £42/yr share cap) become significantly cheaper.</li>
+              <li><strong>Fund Trap:</strong> Hargreaves Lansdown charges £0 to trade funds, but their 0.45% custody fee on funds is <em>uncapped</em> (£450/yr for £100k; £900/yr for £200k).</li>
+              <li><strong>Trading 212 Zero Fee:</strong> 100% free custody and zero dealing commission, but does not provide traditional mutual funds/OEICs, and cannot accept employer SIPP contributions.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- TAB 3: COMPOUNDING DRAG & CROSSOVER CHARTS -->
+        <div id="tab-charts" class="tab-content hidden space-y-6">
+          
+          <!-- Compounding Fee Drag Chart -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <i data-lucide="line-chart" class="w-4 h-4 text-brand-600"></i>
+                  <span>Cumulative Compounding Fee Drag Over Time</span>
+                </h3>
+                <p class="text-xs text-slate-500">Every pound paid in platform fees is money lost from compound growth.</p>
+              </div>
+              <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                Projected at 6% p.a.
+              </span>
+            </div>
+            
+            <div class="h-64 sm:h-72 w-full">
+              <canvas id="chart-compounding-drag"></canvas>
+            </div>
+            <p class="text-[11px] text-slate-400 text-center">Chart shows cumulative fees + lost compound growth across the 6 platforms over your chosen time horizon.</p>
+          </div>
+
+          <!-- Fee Crossover Curve by Portfolio Size -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <i data-lucide="shuffle" class="w-4 h-4 text-purple-600"></i>
+                  <span>Fee Crossover Analysis (£5k to £500k Portfolio)</span>
+                </h3>
+                <p class="text-xs text-slate-500">Visualizes the exact tipping point where flat subscriptions overtake percentage brokers.</p>
+              </div>
+            </div>
+            
+            <div class="h-64 sm:h-72 w-full">
+              <canvas id="chart-crossover"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TAB 4: FEATURE MATRIX & SIPP RULES -->
+        <div id="tab-matrix" class="tab-content hidden space-y-4">
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+            <div class="p-4 bg-slate-50 border-b border-slate-200">
+              <h3 class="text-sm font-bold text-slate-900">Side-by-Side Platform Feature & Rules Matrix</h3>
+              <p class="text-xs text-slate-500">Essential structural differences between UK investment brokers</p>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 uppercase text-[10px] tracking-wider">
+                  <tr>
+                    <th class="py-3 px-4">Feature / Platform</th>
+                    <th class="py-3 px-3">AJ Bell</th>
+                    <th class="py-3 px-3">Interactive Inv.</th>
+                    <th class="py-3 px-3">Hargreaves Lansdown</th>
+                    <th class="py-3 px-3">Trading 212</th>
+                    <th class="py-3 px-3">Fidelity</th>
+                    <th class="py-3 px-3">Vanguard</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr>
+                    <td class="py-2.5 px-4 font-semibold text-slate-700">Custody Fee Structure</td>
+                    <td class="py-2.5 px-3">0.25% (shares capped £42 ISA, £120 SIPP)</td>
+                    <td class="py-2.5 px-3">Flat £4.99 - £11.99/mo (+£10 SIPP)</td>
+                    <td class="py-2.5 px-3">0.45% (shares capped £45 ISA, £0 GIA, £200 SIPP)</td>
+                    <td class="py-2.5 px-3 text-emerald-600 font-bold">£0 (100% Free)</td>
+                    <td class="py-2.5 px-3">0.35% (drops to 0.20% over £250k)</td>
+                    <td class="py-2.5 px-3 text-emerald-600 font-semibold">0.15% (capped at £375/yr)</td>
+                  </tr>
+                  <tr class="bg-slate-50/50">
+                    <td class="py-2.5 px-4 font-semibold text-slate-700">UK Share Dealing</td>
+                    <td class="py-2.5 px-3">£5.00</td>
+                    <td class="py-2.5 px-3">£3.99 (1 free/mo)</td>
+                    <td class="py-2.5 px-3">£11.95</td>
+                    <td class="py-2.5 px-3 text-emerald-600 font-bold">£0.00</td>
+                    <td class="py-2.5 px-3">£7.50</td>
+                    <td class="py-2.5 px-3 text-slate-400">N/A (no shares)</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-4 font-semibold text-slate-700">Fund Dealing (OEICs)</td>
+                    <td class="py-2.5 px-3">£1.50</td>
+                    <td class="py-2.5 px-3">£3.99</td>
+                    <td class="py-2.5 px-3 text-emerald-600 font-semibold">£0 (Free)</td>
+                    <td class="py-2.5 px-3 text-slate-400">N/A (no funds)</td>
+                    <td class="py-2.5 px-3 text-emerald-600 font-semibold">£0 (Free)</td>
+                    <td class="py-2.5 px-3 text-emerald-600 font-semibold">£0 (Vanguard only)</td>
+                  </tr>
+                  <tr class="bg-slate-50/50">
+                    <td class="py-2.5 px-4 font-semibold text-slate-700">FX Fee (US / Overseas)</td>
+                    <td class="py-2.5 px-3">0.75%</td>
+                    <td class="py-2.5 px-3">0.99% (multi-curr)</td>
+                    <td class="py-2.5 px-3">1.00%</td>
+                    <td class="py-2.5 px-3 text-emerald-600 font-bold">0.15%</td>
+                    <td class="py-2.5 px-3">0.75%</td>
+                    <td class="py-2.5 px-3 text-slate-400">N/A (GBP only)</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-4 font-semibold text-slate-700">Employer SIPP Contributions</td>
+                    <td class="py-2.5 px-3 text-emerald-600 font-semibold">✅ Full Support</td>
+                    <td class="py-2.5 px-3 text-emerald-600 font-semibold">✅ Full Support</td>
+                    <td class="py-2.5 px-3 text-emerald-600 font-semibold">✅ Full Support</td>
+                    <td class="py-2.5 px-3 text-red-600 font-semibold">❌ Not Accepted</td>
+                    <td class="py-2.5 px-3 text-emerald-600 font-semibold">✅ Full Support</td>
+                    <td class="py-2.5 px-3 text-red-600 font-semibold">❌ Not Accepted</td>
+                  </tr>
+                  <tr class="bg-slate-50/50">
+                    <td class="py-2.5 px-4 font-semibold text-slate-700">Pension Drawdown Fee</td>
+                    <td class="py-2.5 px-3 text-emerald-600">£0 Free</td>
+                    <td class="py-2.5 px-3 text-emerald-600">£0 Free</td>
+                    <td class="py-2.5 px-3 text-emerald-600">£0 Free</td>
+                    <td class="py-2.5 px-3">Accumulation focused</td>
+                    <td class="py-2.5 px-3 text-emerald-600">£0 Free</td>
+                    <td class="py-2.5 px-3 text-emerald-600">£0 Free</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-4 font-semibold text-slate-700">Interest on Uninvested Cash</td>
+                    <td class="py-2.5 px-3">Up to 3.45%</td>
+                    <td class="py-2.5 px-3">Up to 3.75%</td>
+                    <td class="py-2.5 px-3">Up to 3.55%</td>
+                    <td class="py-2.5 px-3 text-emerald-600 font-bold">5.0% - 5.2% Daily</td>
+                    <td class="py-2.5 px-3">Tiered</td>
+                    <td class="py-2.5 px-3">Competitive</td>
+                  </tr>
+                  <tr class="bg-slate-50/50">
+                    <td class="py-2.5 px-4 font-semibold text-slate-700">Customer Support Desk</td>
+                    <td class="py-2.5 px-3">Phone + Secure Msg</td>
+                    <td class="py-2.5 px-3">Award-winning Phone</td>
+                    <td class="py-2.5 px-3 font-semibold text-slate-900">Benchmark Phone</td>
+                    <td class="py-2.5 px-3">24/7 App Chat</td>
+                    <td class="py-2.5 px-3">Phone & Guidance</td>
+                    <td class="py-2.5 px-3">Phone + Secure Msg</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- Editorial Rules of Thumb & Guidance Section -->
+    <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+      <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+        <div class="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+          <i data-lucide="book-open" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">How to Choose the Right UK Platform: Impartial Rules of Thumb</h2>
+          <p class="text-xs text-slate-500">Key insights that save UK investors hundreds or thousands in lifetime charges</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-600">
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+          <span class="font-bold text-slate-900 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+            <span>1. The Percentage vs Flat Fee Crossover</span>
+          </span>
+          <p>If you have less than <strong>£30,000 to £50,000</strong>, percentage fee brokers (like Vanguard at 0.15% or Trading 212 at 0%) are usually cheapest. But once your total portfolio crosses <strong>£60,000 to £100,000+</strong>, Interactive Investor's flat subscription fee (£143.88/yr) or AJ Bell's £42/yr share cap makes them dramatically cheaper than Hargreaves Lansdown's uncapped 0.45% fund fee.</p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+          <span class="font-bold text-slate-900 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span>2. Employer SIPP Contributions</span>
+          </span>
+          <p>If you run a UK Limited Company and plan to make director pension contributions directly from your business account (saving Corporation Tax and National Insurance), <strong>Vanguard UK and Trading 212 will not work</strong> because they do not accept employer payments. You must use a platform like <strong>AJ Bell, Interactive Investor, Hargreaves Lansdown, or Fidelity</strong>.</p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+          <span class="font-bold text-slate-900 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>3. Overseas Trading & FX Drag</span>
+          </span>
+          <p>If you frequently trade US tech giants (Nvidia, Apple, Microsoft), beware that high foreign exchange fees (HL at 1.00%, ii at 0.99%, AJ Bell/Fidelity at 0.75%) can quickly eclipse all custody fees. Trading 212 charges only <strong>0.15% FX</strong>, while Interactive Investor lets you hold US Dollars in multi-currency accounts to avoid double conversion.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-6 text-slate-500 text-xs mt-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <i data-lucide="compass" class="w-4 h-4 text-brand-600"></i>
+        <span class="font-semibold text-slate-800">UK Investment Platform Advisor</span>
+        <span>• Impartial Educational Tool for British Investors</span>
+      </div>
+      <p class="text-[11px] text-slate-400 text-center sm:text-right">
+        Disclaimer: This tool provides general financial information and fee comparisons, not regulated investment advice under the FCA. Always verify fee schedules directly with each provider before opening an account.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="platforms.js"></script>
+  <script src="calculator.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
