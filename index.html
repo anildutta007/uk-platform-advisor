@@ -70,11 +70,31 @@
             <h1 class="text-lg font-bold tracking-tight text-slate-900">UK Investment Platform Advisor</h1>
             <span class="bg-brand-50 text-brand-700 border border-brand-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">v2.0</span>
           </div>
-          <p class="text-xs text-slate-500">ISA • SIPP Pension • General Trading (GIA) Decision Engine</p>
+          <p class="text-xs text-slate-500 hidden sm:block">ISA • SIPP Pension • General Trading (GIA) Decision Engine</p>
         </div>
       </div>
 
       <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Live Visitor Counter Badge -->
+        <div id="visitor-counter-badge" class="inline-flex items-center gap-2 px-2 sm:px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100/90 border border-slate-200 text-xs shadow-2xs transition" title="Live unique visitors counter">
+          <span class="relative flex h-2 w-2 flex-shrink-0" title="Live tracking active">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <!-- Real-time SVG badge from visitorbadge.io -->
+          <img id="visitor-img-badge" 
+               src="https://api.visitorbadge.io/api/visitors?path=anildutta007-uk-platform-advisor&label=Visitors&labelColor=0f172a&countColor=0284c7&style=flat" 
+               alt="Visitors Count" 
+               class="h-5 w-auto rounded-xs align-middle"
+               loading="eager" />
+          <!-- Resilient fallback container if image is blocked by ad-blocker or offline -->
+          <div id="visitor-fallback-container" class="hidden items-center gap-1.5 text-xs text-slate-700 font-medium">
+            <i data-lucide="users" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span class="text-slate-500 text-[11px] sm:text-xs">Visitors:</span>
+            <span id="visitor-fallback-count" class="font-bold text-brand-700 tabular-nums">--</span>
+          </div>
+        </div>
+
         <button id="btn-print" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition" title="Print or save as PDF">
           <i data-lucide="printer" class="w-4 h-4"></i>
           <span>Export Summary</span>

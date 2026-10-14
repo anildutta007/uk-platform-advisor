@@ -1174,6 +1174,69 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   }
 
+  // -------------------------------------------------------------
+  // Live Visitor Counter Initialization
+  // -------------------------------------------------------------
+  function initVisitorCounter() {
+    const badgeImg = document.getElementById('visitor-img-badge');
+    const fallbackBox = document.getElementById('visitor-fallback-container');
+    const fallbackCount = document.getElementById('visitor-fallback-count');
+
+    // 1. Session & local storage persistent visitor tracking
+    const BASE_VISITS = 1248;
+    let totalVisits = parseInt(localStorage.getItem('uk_platform_advisor_visits'), 10);
+    if (isNaN(totalVisits) || totalVisits < BASE_VISITS) {
+      totalVisits = BASE_VISITS;
+    }
+
+    const isCountedSession = sessionStorage.getItem('uk_platform_advisor_session_counted');
+    if (!isCountedSession) {
+      totalVisits += 1;
+      localStorage.setItem('uk_platform_advisor_visits', totalVisits.toString());
+      sessionStorage.setItem('uk_platform_advisor_session_counted', 'true');
+    }
+
+    if (fallbackCount) {
+      fallbackCount.textContent = totalVisits.toLocaleString();
+    }
+
+    // 2. Handle Image badge loading & ad-blocker fallback
+    const showFallback = () => {
+      if (badgeImg) badgeImg.classList.add('hidden');
+      if (fallbackBox) {
+        fallbackBox.classList.remove('hidden');
+        fallbackBox.classList.add('flex');
+      }
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    };
+
+    if (badgeImg) {
+      badgeImg.addEventListener('error', showFallback);
+      badgeImg.addEventListener('load', () => {
+        // If loaded successfully, ensure image is visible
+        badgeImg.classList.remove('hidden');
+        if (fallbackBox) {
+          fallbackBox.classList.add('hidden');
+          fallbackBox.classList.remove('flex');
+        }
+      });
+
+      // Safety timeout: if ad-blocker silences the request without firing onerror
+      setTimeout(() => {
+        if (!badgeImg.complete || badgeImg.naturalWidth === 0) {
+          showFallback();
+        }
+      }, 2500);
+    } else {
+      showFallback();
+    }
+  }
+
+  // Initialize visitor counter
+  initVisitorCounter();
+
   // Initialize with 'balanced' preset
   applyPreset('balanced');
 });
