@@ -63,8 +63,8 @@
         <span class="text-[11px] text-slate-400 block">Illustrative redesign • figures from current app</span>
       </div>
 
-      <!-- Right Action Links -->
-      <div class="flex items-center gap-3 text-xs">
+      <!-- Right Action Links & Live Visitor Counter -->
+      <div class="flex items-center gap-2 sm:gap-3 text-xs flex-wrap">
         <a href="https://www.dutta-webapps.com/" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-800 hover:text-emerald-700 flex items-center gap-1 transition">
           <span>Anil Dutta Portal</span>
           <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-400"></i>
@@ -74,23 +74,22 @@
           <i data-lucide="download" class="w-3.5 h-3.5 text-slate-500"></i>
           <span>Export summary</span>
         </button>
-        <span class="text-slate-200">|</span>
+        <span class="text-slate-200 hidden sm:inline">|</span>
         <button id="btn-reset" class="inline-flex items-center gap-1.5 font-semibold text-slate-700 hover:text-slate-900 transition" title="Reset all selections">
           <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-slate-500"></i>
-          <span>Reset</span>
+          <span class="hidden sm:inline">Reset</span>
         </button>
+        <span class="text-slate-200">|</span>
 
-        <!-- Live Visitor Counter Badge (Discreet) -->
-        <div id="visitor-counter-badge" class="hidden lg:inline-flex items-center gap-1.5 px-2 py-1 rounded bg-slate-100 border border-slate-200 text-[11px] text-slate-600 ml-1" title="Live unique visitors">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <img id="visitor-img-badge" 
-               src="https://api.visitorbadge.io/api/visitors?path=anildutta007-uk-platform-advisor&label=Visits&labelColor=0f172a&countColor=059669&style=flat" 
-               alt="Visitors" 
-               class="h-4 w-auto rounded-xs align-middle" />
-          <div id="visitor-fallback-container" class="hidden items-center gap-1 font-medium">
-            <span>Visits:</span>
-            <span id="visitor-fallback-count" class="font-bold text-emerald-700 tabular-nums">--</span>
-          </div>
+        <!-- Prominent Live Visitor Counter on Top -->
+        <div id="visitor-counter-badge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 hover:bg-slate-100/90 border border-slate-200 text-xs shadow-2xs transition" title="Live unique visitors to UK Platform Advisor">
+          <span class="relative flex h-2 w-2 flex-shrink-0" title="Live visitor tracking active">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <i data-lucide="users" class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0"></i>
+          <span class="text-slate-500 font-medium">Visitors:</span>
+          <span id="visitor-count-number" class="font-extrabold text-slate-900 tabular-nums">1,284</span>
         </div>
       </div>
     </div>

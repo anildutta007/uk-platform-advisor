@@ -1287,11 +1287,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Visitor Counter Tracking
   function initVisitorCounter() {
-    const badgeImg = document.getElementById('visitor-img-badge');
-    const fallbackBox = document.getElementById('visitor-fallback-container');
-    const fallbackCount = document.getElementById('visitor-fallback-count');
+    const countDisplay = document.getElementById('visitor-count-number');
+    if (!countDisplay) return;
 
-    const BASE_VISITS = 1248;
+    const BASE_VISITS = 1284;
     let totalVisits = parseInt(localStorage.getItem('uk_platform_advisor_visits'), 10);
     if (isNaN(totalVisits) || totalVisits < BASE_VISITS) {
       totalVisits = BASE_VISITS;
@@ -1304,35 +1303,31 @@ document.addEventListener('DOMContentLoaded', () => {
       sessionStorage.setItem('uk_platform_advisor_session_counted', 'true');
     }
 
-    if (fallbackCount) {
-      fallbackCount.textContent = totalVisits.toLocaleString();
-    }
+    // Immediately display formatted count
+    countDisplay.textContent = totalVisits.toLocaleString();
 
-    const showFallback = () => {
-      if (badgeImg) badgeImg.classList.add('hidden');
-      if (fallbackBox) {
-        fallbackBox.classList.remove('hidden');
-        fallbackBox.classList.add('flex');
-      }
-    };
-
-    if (badgeImg) {
-      badgeImg.addEventListener('error', showFallback);
-      badgeImg.addEventListener('load', () => {
-        badgeImg.classList.remove('hidden');
-        if (fallbackBox) {
-          fallbackBox.classList.add('hidden');
-          fallbackBox.classList.remove('flex');
+    // Background sync with online visitor counter
+    fetch('https://api.visitorbadge.io/api/visitors?path=anildutta007-uk-platform-advisor')
+      .then(res => res.text())
+      .then(svgText => {
+        const match = svgText.match(/<text[^>]*font-weight="bold"[^>]*>(\d+)<\/text>/i) ||
+                      svgText.match(/<title>VISITORS:\s*(\d+)<\/title>/i) ||
+                      svgText.match(/aria-label="VISITORS:\s*(\d+)"/i);
+        if (match && match[1]) {
+          const remoteHits = parseInt(match[1], 10);
+          if (!isNaN(remoteHits) && remoteHits > 0) {
+            const combinedCount = BASE_VISITS + remoteHits;
+            if (combinedCount > totalVisits) {
+              totalVisits = combinedCount;
+              localStorage.setItem('uk_platform_advisor_visits', totalVisits.toString());
+              countDisplay.textContent = totalVisits.toLocaleString();
+            }
+          }
         }
+      })
+      .catch(() => {
+        // Fallback gracefully to local stored count
       });
-      setTimeout(() => {
-        if (!badgeImg.complete || badgeImg.naturalWidth === 0) {
-          showFallback();
-        }
-      }, 2500);
-    } else {
-      showFallback();
-    }
   }
 
   // Initialize Application
