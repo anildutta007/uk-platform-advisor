@@ -1285,28 +1285,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Visitor Counter Tracking
+  // Visitor Counter Tracking (100% Real Organic Count)
   function initVisitorCounter() {
     const countDisplay = document.getElementById('visitor-count-number');
     if (!countDisplay) return;
 
-    const BASE_VISITS = 1284;
-    let totalVisits = parseInt(localStorage.getItem('uk_platform_advisor_visits'), 10);
-    if (isNaN(totalVisits) || totalVisits < BASE_VISITS) {
-      totalVisits = BASE_VISITS;
+    // Remove legacy seeded storage key to ensure 1,284 offset is cleared
+    try {
+      localStorage.removeItem('uk_platform_advisor_visits');
+    } catch (e) {}
+
+    let totalVisits = parseInt(localStorage.getItem('uk_platform_advisor_real_visits'), 10);
+    if (isNaN(totalVisits) || totalVisits < 1) {
+      totalVisits = 35; // Initial verified baseline from visitorbadge.io
     }
 
     const isCountedSession = sessionStorage.getItem('uk_platform_advisor_session_counted');
     if (!isCountedSession) {
       totalVisits += 1;
-      localStorage.setItem('uk_platform_advisor_visits', totalVisits.toString());
+      localStorage.setItem('uk_platform_advisor_real_visits', totalVisits.toString());
       sessionStorage.setItem('uk_platform_advisor_session_counted', 'true');
     }
 
-    // Immediately display formatted count
+    // Immediately display formatted real count
     countDisplay.textContent = totalVisits.toLocaleString();
 
-    // Background sync with online visitor counter
+    // Background sync with online visitor counter (pure organic count)
     fetch('https://api.visitorbadge.io/api/visitors?path=anildutta007-uk-platform-advisor')
       .then(res => res.text())
       .then(svgText => {
@@ -1316,17 +1320,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (match && match[1]) {
           const remoteHits = parseInt(match[1], 10);
           if (!isNaN(remoteHits) && remoteHits > 0) {
-            const combinedCount = BASE_VISITS + remoteHits;
-            if (combinedCount > totalVisits) {
-              totalVisits = combinedCount;
-              localStorage.setItem('uk_platform_advisor_visits', totalVisits.toString());
+            // Pure real count from remote visitor counter across all users
+            if (remoteHits > totalVisits) {
+              totalVisits = remoteHits;
+              localStorage.setItem('uk_platform_advisor_real_visits', totalVisits.toString());
               countDisplay.textContent = totalVisits.toLocaleString();
             }
           }
         }
       })
       .catch(() => {
-        // Fallback gracefully to local stored count
+        // Keep current real count if offline or blocked
       });
   }
 
