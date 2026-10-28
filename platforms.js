@@ -7,6 +7,7 @@
  * 4. Trading 212
  * 5. Fidelity International
  * 6. Vanguard UK Investor
+ * 7. IG (IG.com)
  */
 
 const PLATFORMS_DATA = [
@@ -545,6 +546,86 @@ const PLATFORMS_DATA = [
       "No multi-currency holding or overseas market trading"
     ],
     officialUrl: "https://www.vanguardinvestor.co.uk"
+  },
+  {
+    id: "ig",
+    name: "IG",
+    shortName: "IG",
+    tagline: "Commission-free global share dealing with £0 ISA custody fee and institutional tools",
+    logoColor: "#d6001c", // IG Red
+    badge: "Zero commission share dealing & £0 ISA",
+    rating: 4.6,
+    trustScore: "4.5/5 (Trustpilot 8k+ reviews)",
+    accountsSupported: {
+      isa: true,
+      sipp: true,
+      gia: true
+    },
+    universe: {
+      ukShares: true,
+      etfs: true,
+      funds: false, // NO traditional mutual funds / OEICs / unit trusts
+      investmentTrusts: true,
+      usStocks: true,
+      europeanStocks: true
+    },
+    investmentPermissions: {
+      ukShares: { permitted: true, label: "UK Shares", detail: "Over 10,000+ UK shares, FTSE 100, 250, Small Cap, AIM" },
+      etfs: { permitted: true, label: "ETFs", detail: "Over 3,000+ UK and international UCITS ETFs" },
+      funds: { permitted: false, label: "Mutual Funds / OEICs", detail: "NOT PERMITTED - No traditional Unit Trusts or OEICs (shares & ETFs only)" },
+      investmentTrusts: { permitted: true, label: "Investment Trusts", detail: "UK closed-end investment trusts & REITs" },
+      usStocks: { permitted: true, label: "US Stocks", detail: "Direct trading on NYSE & NASDAQ (£0 commission)" },
+      europeanStocks: { permitted: true, label: "European Stocks", detail: "Direct continental European shares (£0 commission)" }
+    },
+    notPermittedList: [
+      "Mutual Funds / Unit Trusts (OEICs)"
+    ],
+    notPermittedDetails: "IG share dealing strictly provides exchange-traded instruments (single stocks, investment trusts, and UCITS ETFs). Traditional mutual funds, unit trusts, and OEICs are not available. Investors must use equivalent UCITS ETFs instead.",
+    custodyFeeModel: {
+      type: "zero_fee_with_sipp_admin",
+      isaRate: 0.0000,
+      giaRate: 0.0000,
+      sippAdminYear: 210.00
+    },
+    dealingFees: {
+      ukShares: 0.00, // £0 online commission
+      funds: 0.00, // N/A
+      usStocks: 0.00, // £0 online commission
+      europeanStocks: 0.00, // £0 online commission
+      regularInvesting: 0.00,
+      dividendReinvestment: 0.00
+    },
+    fxFees: [
+      { upTo: Infinity, rate: 0.0070 } // 0.70% FX fee on international shares
+    ],
+    sippRules: {
+      supported: true,
+      employerContributions: true, // Supported via Options UK SIPP trustee
+      drawdownFee: 0,
+      ufplsFee: 0,
+      notes: "SIPP administered by Options UK Pensions with full employer contribution support (£210/year flat administrator fee)."
+    },
+    features: {
+      interestOnCash: "Up to 3.75% AER on uninvested cash balances",
+      fractionalShares: false,
+      multiCurrencyAccounts: true, // Hold foreign currencies or auto-convert
+      mobileAppRating: "4.6 ★ (iOS) / 4.4 ★ (Android) - Award-winning platform",
+      customerService: "24/5 phone and live chat support from UK trading specialists",
+      researchTools: "Industry-leading technical charting, ProRealTime, Reuters newsfeed, analyst consensus"
+    },
+    pros: [
+      "Zero commission (£0) on UK, US, and European online share & ETF trades",
+      "£0 platform / custody fee on Stocks & Shares ISA and General Investment Account (GIA)",
+      "Full employer and Ltd Company director contributions supported for SIPP (via Options UK)",
+      "Competitive 0.70% FX fee on overseas US & European shares",
+      "Market-leading technical analysis, charting tools, and Reuters market news"
+    ],
+    cons: [
+      "Does NOT offer traditional mutual funds or OEIC unit trusts (ETFs & stocks only)",
+      "SIPP carries a £210/year flat administrator fee from Options UK",
+      "Telephone dealing carries high charges (£40-£50 per trade)"
+    ],
+    officialUrl: "https://www.ig.com/uk"
   }
 ];
 

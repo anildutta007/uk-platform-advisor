@@ -145,6 +145,11 @@
       sippPlatformFee = 0;
       giaPlatformFee = 0;
       totalPlatformFee = 0;
+    } else if (platform.id === 'ig') {
+      isaPlatformFee = 0;
+      giaPlatformFee = 0;
+      sippPlatformFee = accounts.sipp ? (model.sippAdminYear || 210.00) : 0;
+      totalPlatformFee = sippPlatformFee;
     } else if (platform.id === 'vanguard') {
       // 0.15% across all accounts, capped at £375/year total
       const rawFee = avgYearOnePortfolio * model.rate;
@@ -287,7 +292,7 @@
     const fundTrades = Number(tradingFrequency.fundTradesPerYear) || 0;
     const overseasTrades = Number(tradingFrequency.overseasTradesPerYear) || 0;
 
-    if (platform.id === 'trading-212' || platform.id === 'vanguard') {
+    if (platform.id === 'trading-212' || platform.id === 'vanguard' || platform.id === 'ig') {
       ukShareTradeFee = 0;
       fundTradeFee = 0;
       overseasTradeFee = 0;
@@ -333,7 +338,7 @@
       const monthlyLegs = (accounts.isa ? 1 : 0) + (accounts.sipp ? 1 : 0) + (accounts.gia ? 1 : 0);
       const annualRegularTrades = monthlyLegs * 12;
 
-      if (platform.id === 'trading-212' || platform.id === 'vanguard') {
+      if (platform.id === 'trading-212' || platform.id === 'vanguard' || platform.id === 'ig') {
         regularInvestingFee = 0;
       } else if (platform.id === 'interactive-investor') {
         regularInvestingFee = 0; // ii offers free regular investing!
@@ -410,6 +415,8 @@
         const isUnder50k = currentPot <= 50000;
         const base = isUnder50k ? 4.99 : 11.99;
         yrPlatformFee = (base * 12) + (accounts.sipp ? 120 : 0);
+      } else if (platform.id === 'ig') {
+        yrPlatformFee = accounts.sipp ? (platform.custodyFeeModel.sippAdminYear || 210.00) : 0;
       }
 
       const yrTotalFee = yrPlatformFee + totalDealingFee + regularInvestingFee + fxFee;
@@ -522,6 +529,17 @@
       }
     }
 
+    if (platform.id === 'ig') {
+      if (wantsFunds) {
+        compatibility.hasDisqualifier = true;
+        compatibility.isFullyCompatible = false;
+        const igMsg = "IG does not offer traditional Unit Trusts or OEIC mutual funds (shares, investment trusts & ETFs only).";
+        if (!compatibility.disqualifiers.includes(igMsg)) {
+          compatibility.disqualifiers.push(igMsg);
+        }
+      }
+    }
+
     // 8. Suitability Score Calculation (0 to 100)
     let score = 90;
 
@@ -547,6 +565,9 @@
     }
     if (platform.id === 'trading-212' && !wantsFunds && (!accounts.sipp || !sippEmployerContrib)) {
       score += 7; // Zero fee champion for stocks & ETFs
+    }
+    if (platform.id === 'ig' && !wantsFunds) {
+      score += 7; // Zero commission champion for global shares & ETFs
     }
     if (platform.id === 'vanguard' && !wantsUkShares && !wantsOverseas && (!accounts.sipp || !sippEmployerContrib)) {
       score += 7; // Benchmark passive fund champion
@@ -612,6 +633,11 @@
       keyReasons.push({
         type: 'positive',
         text: `Tiered fee drops to 0.20% over £250k and 0% over £1m. Free fund trades and full SIPP drawdown.`
+      });
+    } else if (platform.id === 'ig') {
+      keyReasons.push({
+        type: 'positive',
+        text: `Zero commission on global shares and £0 platform fee for ISA & GIA. SIPP has a flat £210/year fee via Options UK.`
       });
     }
 

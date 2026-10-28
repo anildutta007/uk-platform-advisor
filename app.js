@@ -231,6 +231,15 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="font-black text-[#991b1b] text-sm tracking-tight">Vanguard</span>
           </div>
         `;
+      case 'ig':
+        return `
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded bg-[#d6001c] flex items-center justify-center shrink-0 text-white font-black text-xs tracking-tight shadow-xs">
+              IG
+            </div>
+            <span class="font-extrabold text-slate-900 text-base tracking-tight">IG</span>
+          </div>
+        `;
       default:
         return `<span class="font-bold text-slate-900 text-base">${name}</span>`;
     }
@@ -664,7 +673,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <ul class="list-disc list-inside space-y-1 text-slate-700 pl-2">
           <li><strong>Vanguard UK Investor:</strong> Personal member contributions only. Does NOT accept employer payments.</li>
           <li><strong>Trading 212 SIPP:</strong> Personal direct debit / debit card only. Does NOT accept employer payments.</li>
-          <li><strong>AJ Bell, Interactive Investor, Fidelity & HL:</strong> Fully support Ltd Company employer payments with online or paper forms.</li>
+          <li><strong>AJ Bell, Interactive Investor, Fidelity, HL & IG:</strong> Fully support Ltd Company employer payments with online or paper forms.</li>
         </ul>
       `
     },
@@ -676,6 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <ul class="list-disc list-inside space-y-1 text-slate-700 pl-2">
           <li><strong>Trading 212:</strong> Just <strong>0.15% FX</strong> — by far the lowest in the UK retail market.</li>
           <li><strong>Interactive Investor:</strong> 0.99% standard, but offers <strong>multi-currency accounts</strong> allowing you to hold USD directly and eliminate repeat FX fees on US sales.</li>
+          <li><strong>IG:</strong> <strong>0.70% FX</strong> with £0 online commission on US and European shares.</li>
           <li><strong>AJ Bell & Fidelity:</strong> 0.75% FX fee.</li>
           <li><strong>Hargreaves Lansdown:</strong> 1.00% FX fee on transactions under £5,000.</li>
         </ul>
