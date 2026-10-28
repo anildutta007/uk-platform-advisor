@@ -1214,7 +1214,7 @@ document.addEventListener('DOMContentLoaded', () => {
     winnerCardContainer.appendChild(card);
   }
 
-  // Render Runners-Up Platforms (Requirement 3: Smaller Cards in 2-Column Grid with Relative Cost Bars)
+  // Render Runners-Up Platforms (Requirement 3: Smaller Cards in 2-Column Grid with Relative Cost Bars & Detail Fees)
   function renderRunnersUpCards(rankedPlatforms) {
     if (!runnersUpGrid) return;
     runnersUpGrid.innerHTML = '';
@@ -1237,12 +1237,22 @@ document.addEventListener('DOMContentLoaded', () => {
       const diffYear = result.yearOneTotalFee - winner.yearOneTotalFee;
       const pctBar = Math.min(100, Math.max(12, (diffYear / maxDiff) * 100));
 
-      const costVal = isMonthly ? (result.yearOneTotalFee / 12) : result.yearOneTotalFee;
-      const costSuffix = isMonthly ? '/ year' : '/ year'; // As shown in mockup e.g. £119.76 / year
+      const monthlyCost = result.yearOneTotalFee / 12;
+      const annualCost = result.yearOneTotalFee;
+
+      const monthlyPlatform = result.totalPlatformFee / 12;
+      const annualPlatform = result.totalPlatformFee;
+      const monthlyDealing = result.totalDealingFee / 12;
+      const annualDealing = result.totalDealingFee;
+      const monthlyRegular = result.regularInvestingFee / 12;
+      const annualRegular = result.regularInvestingFee;
+      const monthlyFx = result.fxFee / 12;
+      const annualFx = result.fxFee;
+
       const horizonTotalText = formatGbpInt(result.tenYearCost);
 
       const card = document.createElement('div');
-      card.className = 'runner-card rounded-2xl p-4 space-y-3';
+      card.className = 'runner-card rounded-2xl p-5 space-y-3.5';
 
       card.innerHTML = `
         <!-- Top Row: Brand on Left, Total 10-Yr Cost on Right -->
@@ -1250,7 +1260,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div>
             ${getPlatformBrandHtml(p.id, p.name)}
           </div>
-          <span class="text-xs font-bold text-slate-500">
+          <span class="text-xs font-extrabold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
             ${horizonTotalText} total
           </span>
         </div>
@@ -1258,24 +1268,129 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Diff Line & Relative Progress Bar -->
         <div class="space-y-1.5 pt-1">
           <div class="flex items-center justify-between text-xs font-bold">
-            <span class="text-rose-600">+${formatGbp(diffYear)} more than ${winner.platform.shortName}</span>
+            <span class="text-rose-600">+${formatGbp(diffYear)}/yr more than ${winner.platform.shortName}</span>
           </div>
           <div class="cost-diff-bar-track">
             <div class="cost-diff-bar-fill bg-gradient-to-r from-amber-500 to-rose-500" style="width: ${pctBar}%;"></div>
           </div>
         </div>
 
-        <!-- Annual Cost Line -->
-        <div class="flex items-center justify-between pt-1 text-xs">
-          <span class="font-extrabold text-slate-800 text-sm">
-            ${formatGbp(result.yearOneTotalFee)} <span class="text-slate-400 font-normal text-xs">/ year</span>
+        <!-- Price Headline (Monthly or Annual based on toggle) -->
+        <div class="flex items-baseline justify-between pt-1">
+          <div>
+            <span class="font-serif-headline text-xl sm:text-2xl font-black text-slate-900">
+              ${formatGbp(isMonthly ? monthlyCost : annualCost)}
+            </span>
+            <span class="text-xs font-bold text-slate-500">${isMonthly ? '/ month' : '/ year'}</span>
+          </div>
+          <span class="text-[11px] text-slate-500 font-semibold">
+            ${isMonthly ? `${formatGbp(annualCost)} / yr` : `${formatGbp(monthlyCost)} / mo`} • <span class="text-slate-700 font-bold">${result.effectiveFeePct.toFixed(2)}% drag</span>
           </span>
-          <a href="${p.officialUrl}" target="_blank" rel="noopener noreferrer" class="text-slate-500 hover:text-slate-900 font-semibold flex items-center gap-1 transition">
-            <span>Details</span>
-            <i data-lucide="arrow-up-right" class="w-3 h-3 text-slate-400"></i>
+        </div>
+
+        <!-- 4 Fee Breakdown Boxes for Complete Transparency -->
+        <div class="grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-100 text-center">
+          <div class="bg-slate-50/90 p-2 rounded-xl border border-slate-100">
+            <span class="text-[10px] text-slate-500 font-semibold block truncate">Platform fee</span>
+            <span class="font-bold text-slate-800 text-xs">${formatGbp(isMonthly ? monthlyPlatform : annualPlatform)} <span class="text-[9px] text-slate-400 font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
+          </div>
+          <div class="bg-slate-50/90 p-2 rounded-xl border border-slate-100">
+            <span class="text-[10px] text-slate-500 font-semibold block truncate">Dealing</span>
+            <span class="font-bold text-slate-800 text-xs">${formatGbp(isMonthly ? monthlyDealing : annualDealing)} <span class="text-[9px] text-slate-400 font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
+          </div>
+          <div class="bg-slate-50/90 p-2 rounded-xl border border-slate-100">
+            <span class="text-[10px] text-slate-500 font-semibold block truncate">Regular inv.</span>
+            <span class="font-bold text-slate-800 text-xs">${formatGbp(isMonthly ? monthlyRegular : annualRegular)} <span class="text-[9px] text-slate-400 font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
+          </div>
+          <div class="bg-slate-50/90 p-2 rounded-xl border border-slate-100">
+            <span class="text-[10px] text-slate-500 font-semibold block truncate">FX fee</span>
+            <span class="font-bold text-slate-800 text-xs">${formatGbp(isMonthly ? monthlyFx : annualFx)} <span class="text-[9px] text-slate-400 font-normal">${isMonthly ? '/mo' : '/yr'}</span></span>
+          </div>
+        </div>
+
+        <!-- Action Row: Pros/Cons Drawer Toggle & Platform Link -->
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+          <button class="btn-toggle-runner-drawer text-xs text-slate-600 hover:text-slate-900 font-bold flex items-center gap-1 transition">
+            <span>Pros, cons & details</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 transition-transform"></i>
+          </button>
+          <a href="${p.officialUrl}" target="_blank" rel="noopener noreferrer" class="text-slate-600 hover:text-slate-900 font-bold text-xs flex items-center gap-1 transition">
+            <span>Visit platform</span>
+            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-400"></i>
           </a>
         </div>
+
+        <!-- Collapsible Details Drawer for Runner-up Platform -->
+        <div class="runner-pros-cons-drawer hidden pt-3 border-t border-slate-100 space-y-3">
+          <!-- Account Custody Breakdown -->
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 grid grid-cols-3 gap-2 text-[11px] text-center">
+            <div>
+              <span class="text-slate-400 block font-medium">ISA Custody:</span>
+              <span class="font-bold text-slate-800">${formatGbp(result.accountFees.isa)}/yr</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">SIPP Custody:</span>
+              <span class="font-bold text-slate-800">${formatGbp(result.accountFees.sipp)}/yr</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">GIA Custody:</span>
+              <span class="font-bold text-slate-800">${formatGbp(result.accountFees.gia)}/yr</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="space-y-1">
+              <span class="font-bold text-emerald-800 flex items-center gap-1">
+                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                <span>Key Strengths / Pros</span>
+              </span>
+              <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
+                ${p.pros.map(pro => `<li>${pro}</li>`).join('')}
+              </ul>
+            </div>
+            <div class="space-y-1">
+              <span class="font-bold text-red-800 flex items-center gap-1">
+                <i data-lucide="x" class="w-3.5 h-3.5 text-red-600"></i>
+                <span>Limitations / Cons</span>
+              </span>
+              <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
+                ${p.cons.map(con => `<li>${con}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 grid grid-cols-3 gap-2 text-[11px]">
+            <div>
+              <span class="text-slate-400 block font-medium">Interest on Cash:</span>
+              <span class="font-bold text-slate-800">${p.features.interestOnCash}</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">Support:</span>
+              <span class="font-bold text-slate-800">${p.features.customerService}</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">App Rating:</span>
+              <span class="font-bold text-slate-800">${p.features.mobileAppRating}</span>
+            </div>
+          </div>
+        </div>
       `;
+
+      // Attach drawer toggle
+      const toggleBtn = card.querySelector('.btn-toggle-runner-drawer');
+      const drawer = card.querySelector('.runner-pros-cons-drawer');
+      if (toggleBtn && drawer) {
+        toggleBtn.addEventListener('click', () => {
+          const isClosed = drawer.classList.contains('hidden');
+          if (isClosed) {
+            drawer.classList.remove('hidden');
+            toggleBtn.querySelector('i')?.classList.add('rotate-180');
+          } else {
+            drawer.classList.add('hidden');
+            toggleBtn.querySelector('i')?.classList.remove('rotate-180');
+          }
+        });
+      }
 
       runnersUpGrid.appendChild(card);
     });
