@@ -1,6 +1,8 @@
 /**
  * UK Investment Platform Advisor - Frontend Controller
- * Implements the redesigned GUI layout matching the team's visual mockup.
+ * Complete identity redesign: Deep navy header, sharp serif typography,
+ * strong headline result banner, raised winner card with runners-up comparison bars,
+ * allocation doughnut chart, stacked fee decomposition bar chart, and cumulative drag curves.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -11,6 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Cost View Mode: 'monthly' | 'annual'
   let costViewMode = 'monthly';
+
+  // Step Tabs Navigation State
+  let currentStepIndex = 1; // 1 to 6
+  const totalSteps = 6;
 
   // DOM Elements: Account Lump Sums
   const accountIsa = document.getElementById('account-isa');
@@ -29,9 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const monthlySipp = document.getElementById('monthly-sipp');
   const monthlyGia = document.getElementById('monthly-gia');
   const totalMonthlyDisplay = document.getElementById('total-monthly-display');
-
-  // Page Subheader Summary
-  const profileSummaryText = document.getElementById('profile-summary-text');
 
   // Asset Checkboxes and Pills
   const chkUkShares = document.getElementById('chk-uk-shares');
@@ -71,7 +74,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const allocSumText = document.getElementById('alloc-sum-text');
   const presetAllocSelect = document.getElementById('preset-alloc-select');
 
-  // Accordions & Summaries
+  // Doughnut Legend Element
+  const doughnutLegend = document.getElementById('doughnut-legend');
+
+  // Trading & Overseas
   const tradesUk = document.getElementById('trades-uk');
   const valTradesUk = document.getElementById('val-trades-uk');
   const tradesFunds = document.getElementById('trades-funds');
@@ -81,16 +87,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const tradeSizeOverseas = document.getElementById('trade-size-overseas');
   const tradingSummaryBadge = document.getElementById('trading-summary-badge');
 
+  // Pension
   const sippEmployerContrib = document.getElementById('sipp-employer-contrib');
   const employerContribWarning = document.getElementById('employer-contrib-warning');
   const pensionWithdrawal = document.getElementById('pension-withdrawal');
-  const pensionSummaryBadge = document.getElementById('pension-summary-badge');
 
+  // Horizon & Return
   const horizonYears = document.getElementById('horizon-years');
   const valHorizonDisplay = document.getElementById('val-horizon-display');
   const expectedReturn = document.getElementById('expected-return');
   const valReturnDisplay = document.getElementById('val-return-display');
   const horizonSummaryBadge = document.getElementById('horizon-summary-badge');
+  const dragChartSubtitle = document.getElementById('drag-chart-subtitle');
+
+  // Hero Stats & Headline Result Elements
+  const heroEligibleStat = document.getElementById('hero-eligible-stat');
+  const heroExcludedStat = document.getElementById('hero-excluded-stat');
+  const heroPotStat = document.getElementById('hero-pot-stat');
+  const heroBannerWinnerLabel = document.getElementById('hero-banner-winner-label');
+  const heroBannerAmount = document.getElementById('hero-banner-amount');
+  const heroBannerDiff = document.getElementById('hero-banner-diff');
+  const heroParamInvested = document.getElementById('hero-param-invested');
+  const heroParamMonthly = document.getElementById('hero-param-monthly');
+  const heroParamHorizon = document.getElementById('hero-param-horizon');
+  const heroParamReturn = document.getElementById('hero-param-return');
 
   // Right Column Elements
   const statusEligibleCount = document.getElementById('status-eligible-count');
@@ -99,15 +119,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggleViewMonthly = document.getElementById('toggle-view-monthly');
   const toggleViewAnnual = document.getElementById('toggle-view-annual');
 
-  const lowestCostBanner = document.getElementById('lowest-cost-banner');
-  const bannerLowestTitle = document.getElementById('banner-lowest-title');
-  const bannerLowestDesc = document.getElementById('banner-lowest-desc');
+  const winnerCardContainer = document.getElementById('winner-card-container');
+  const runnersUpGrid = document.getElementById('runners-up-grid');
 
-  const platformCardsContainer = document.getElementById('platform-cards-container');
-  const excludedPlatformsBanner = document.getElementById('excluded-platforms-banner');
-  const excludedBannerTitle = document.getElementById('excluded-banner-title');
-  const excludedBannerList = document.getElementById('excluded-banner-list');
-  const btnViewReasonsCard = document.getElementById('btn-view-reasons-card');
+  // Excluded Platforms Card
+  const excludedPlatformsCard = document.getElementById('excluded-platforms-card');
+  const excludedCardTitle = document.getElementById('excluded-card-title');
+  const excludedPlatformsList = document.getElementById('excluded-platforms-list');
+
+  // Step Buttons
+  const stepTabs = document.querySelectorAll('.profile-step-tab');
+  const stepPanels = document.querySelectorAll('.step-panel');
+  const btnStepPrev = document.getElementById('btn-step-prev');
+  const btnStepNext = document.getElementById('btn-step-next');
+  const stepIndicatorText = document.getElementById('step-indicator-text');
+
+  // Reset & Print Buttons
+  const btnReset = document.getElementById('btn-reset');
+  const btnResetForm = document.getElementById('btn-reset-form');
+  const btnPrint = document.getElementById('btn-print');
 
   // Modals
   const modalEligibilityReasons = document.getElementById('modal-eligibility-reasons');
@@ -121,28 +151,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCloseTradeoffModal = document.getElementById('btn-close-tradeoff-modal');
   const btnCloseTradeoffModalBottom = document.getElementById('btn-close-tradeoff-modal-bottom');
 
-  // Tabs & Other Containers
-  const navTabs = document.querySelectorAll('.nav-tab');
-  const tabContents = document.querySelectorAll('.tab-content');
-  const tableBreakdownBody = document.getElementById('table-breakdown-body');
-  const btnReset = document.getElementById('btn-reset');
-  const btnPrint = document.getElementById('btn-print');
-
   // Chart instances
+  let allocationDoughnutChart = null;
+  let feeDecompositionChart = null;
   let compoundingDragChart = null;
-  let crossoverChart = null;
 
   // Cached state for modal
   let currentExcludedPlatforms = [];
 
   // Asset Items List
   const ASSET_ITEMS = [
-    { key: 'ukShares', chk: chkUkShares, pill: pillUkShares, row: rowUkShares, slider: allocUkShares, valEl: valUkShares, name: 'UK Shares' },
-    { key: 'etfs', chk: chkEtfs, pill: pillEtfs, row: rowEtfs, slider: allocEtfs, valEl: valEtfs, name: 'ETFs' },
-    { key: 'funds', chk: chkFunds, pill: pillFunds, row: rowFunds, slider: allocFunds, valEl: valFunds, name: 'Funds / OEICs' },
-    { key: 'investmentTrusts', chk: chkIt, pill: pillIt, row: rowIt, slider: allocIt, valEl: valIt, name: 'Inv. Trusts' },
-    { key: 'usStocks', chk: chkUs, pill: pillUs, row: rowUs, slider: allocUs, valEl: valUs, name: 'US Stocks' },
-    { key: 'europeanStocks', chk: chkEu, pill: pillEu, row: rowEu, slider: allocEu, valEl: valEu, name: 'European Stocks' }
+    { key: 'ukShares', chk: chkUkShares, pill: pillUkShares, row: rowUkShares, slider: allocUkShares, valEl: valUkShares, name: 'UK Shares', color: '#e5a93c' },
+    { key: 'etfs', chk: chkEtfs, pill: pillEtfs, row: rowEtfs, slider: allocEtfs, valEl: valEtfs, name: 'ETFs', color: '#0d9488' },
+    { key: 'funds', chk: chkFunds, pill: pillFunds, row: rowFunds, slider: allocFunds, valEl: valFunds, name: 'Funds / OEICs', color: '#2563eb' },
+    { key: 'investmentTrusts', chk: chkIt, pill: pillIt, row: rowIt, slider: allocIt, valEl: valIt, name: 'Inv. Trusts', color: '#e11d48' },
+    { key: 'usStocks', chk: chkUs, pill: pillUs, row: rowUs, slider: allocUs, valEl: valUs, name: 'US Stocks', color: '#7c3aed' },
+    { key: 'europeanStocks', chk: chkEu, pill: pillEu, row: rowEu, slider: allocEu, valEl: valEu, name: 'European', color: '#64748b' }
   ];
 
   let isAutoBalancing = false;
@@ -160,6 +184,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (amount === undefined || amount === null) return '£0';
     return '£' + Math.round(Number(amount)).toLocaleString('en-GB');
   }
+
+  // Count-up animation for numbers
+  function animateValue(element, start, end, duration, prefix = '£', suffix = '') {
+    if (!element) return;
+    const startTime = performance.now();
+    function update(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      const current = start + (end - start) * easeOut;
+      element.innerHTML = `${prefix}${current.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<span class="text-base font-sans font-semibold text-slate-500"> ${suffix}</span>`;
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      }
+    }
+    requestAnimationFrame(update);
+  }
+
+  let lastHeadlineEndValue = 165.75;
 
   // Generate Authentic Brand SVGs & Logomarks
   function getPlatformBrandHtml(id, name) {
@@ -245,7 +289,66 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Synchronize Asset Pills & Slider Visibility
+  // STEP NAVIGATION LOGIC
+  function setStep(stepNum) {
+    currentStepIndex = Math.max(1, Math.min(stepNum, totalSteps));
+
+    stepTabs.forEach((tab, idx) => {
+      if (idx + 1 === currentStepIndex) {
+        tab.classList.add('active');
+      } else {
+        tab.classList.remove('active');
+      }
+    });
+
+    stepPanels.forEach((panel, idx) => {
+      if (idx + 1 === currentStepIndex) {
+        panel.classList.remove('hidden');
+      } else {
+        panel.classList.add('hidden');
+      }
+    });
+
+    if (btnStepPrev) btnStepPrev.disabled = (currentStepIndex === 1);
+    if (btnStepNext) {
+      if (currentStepIndex === totalSteps) {
+        btnStepNext.innerHTML = `<span>Finished</span> <i data-lucide="check" class="w-3.5 h-3.5"></i>`;
+      } else {
+        btnStepNext.innerHTML = `<span>Next</span> <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>`;
+      }
+    }
+    if (stepIndicatorText) {
+      stepIndicatorText.textContent = `Step ${currentStepIndex} of ${totalSteps}`;
+    }
+
+    if (currentStepIndex === 3 && allocationDoughnutChart) {
+      setTimeout(() => {
+        allocationDoughnutChart.resize();
+      }, 50);
+    }
+
+    if (window.lucide && window.lucide.createIcons) {
+      window.lucide.createIcons();
+    }
+  }
+
+  stepTabs.forEach((tab, idx) => {
+    tab.addEventListener('click', () => setStep(idx + 1));
+  });
+
+  if (btnStepPrev) {
+    btnStepPrev.addEventListener('click', () => setStep(currentStepIndex - 1));
+  }
+
+  if (btnStepNext) {
+    btnStepNext.addEventListener('click', () => {
+      if (currentStepIndex < totalSteps) {
+        setStep(currentStepIndex + 1);
+      }
+    });
+  }
+
+  // Synchronize Asset Chips & Slider Visibility
   function syncAssetPillsAndSliders() {
     ASSET_ITEMS.forEach(item => {
       if (!item.chk) return;
@@ -259,9 +362,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (item.pill) {
         if (isChecked) {
-          item.pill.className = 'asset-pill checked flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md border text-xs font-semibold cursor-pointer select-none';
+          item.pill.className = 'asset-chip checked flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-bold cursor-pointer select-none';
         } else {
-          item.pill.className = 'asset-pill unchecked flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md border text-xs font-semibold cursor-pointer select-none';
+          item.pill.className = 'asset-chip unchecked flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-bold cursor-pointer select-none';
         }
       }
       if (!isChecked && item.slider && item.valEl) {
@@ -269,6 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
         item.valEl.textContent = '0%';
       }
     });
+    updateDoughnutChart();
   }
 
   function getActiveAssetItems() {
@@ -307,6 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     updateAllocSum();
+    updateDoughnutChart();
     calculateAndRender();
     isAutoBalancing = false;
   }
@@ -322,61 +427,117 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    if (active.length === 1) {
+    const newVal = parseInt(changedItem.slider.value, 10) || 0;
+    changedItem.valEl.textContent = `${newVal}%`;
+
+    const otherItems = active.filter(item => item.key !== changedKey);
+    const remainingTarget = 100 - newVal;
+
+    if (otherItems.length === 0) {
       changedItem.slider.value = 100;
       changedItem.valEl.textContent = '100%';
-      updateAllocSum();
-      calculateAndRender();
-      isAutoBalancing = false;
-      return;
-    }
-
-    let newVal = Math.min(100, Math.max(0, parseInt(changedItem.slider.value, 10) || 0));
-    changedItem.slider.value = newVal;
-
-    const others = active.filter(item => item.key !== changedKey);
-    const remainingBudget = 100 - newVal;
-    const currentOtherSum = others.reduce((acc, item) => acc + (parseInt(item.slider.value, 10) || 0), 0);
-
-    if (currentOtherSum > 0) {
-      let allocatedSoFar = 0;
-      others.forEach((item, index) => {
-        if (index === others.length - 1) {
-          item.slider.value = Math.max(0, remainingBudget - allocatedSoFar);
-        } else {
-          const prop = (parseInt(item.slider.value, 10) || 0) / currentOtherSum;
-          const scaled = Math.round(prop * remainingBudget);
-          item.slider.value = scaled;
-          allocatedSoFar += scaled;
-        }
-        item.valEl.textContent = `${item.slider.value}%`;
-      });
-    } else if (remainingBudget > 0) {
-      const base = Math.floor(remainingBudget / others.length);
-      let allocatedSoFar = 0;
-      others.forEach((item, index) => {
-        if (index === others.length - 1) {
-          item.slider.value = Math.max(0, remainingBudget - allocatedSoFar);
-        } else {
-          item.slider.value = base;
-          allocatedSoFar += base;
-        }
-        item.valEl.textContent = `${item.slider.value}%`;
-      });
-    } else {
-      others.forEach(item => {
+    } else if (remainingTarget <= 0) {
+      otherItems.forEach(item => {
         item.slider.value = 0;
         item.valEl.textContent = '0%';
       });
+      changedItem.slider.value = 100;
+      changedItem.valEl.textContent = '100%';
+    } else {
+      const currentOthersSum = otherItems.reduce((acc, item) => acc + (parseInt(item.slider.value, 10) || 0), 0);
+
+      if (currentOthersSum === 0) {
+        const split = Math.floor(remainingTarget / otherItems.length);
+        let rem = remainingTarget;
+        otherItems.forEach((item, idx) => {
+          if (idx === otherItems.length - 1) {
+            item.slider.value = rem;
+          } else {
+            item.slider.value = split;
+            rem -= split;
+          }
+          item.valEl.textContent = `${item.slider.value}%`;
+        });
+      } else {
+        let assignedSoFar = 0;
+        otherItems.forEach((item, idx) => {
+          if (idx === otherItems.length - 1) {
+            item.slider.value = Math.max(0, remainingTarget - assignedSoFar);
+          } else {
+            const currentItemVal = parseInt(item.slider.value, 10) || 0;
+            const proportional = Math.round((currentItemVal / currentOthersSum) * remainingTarget);
+            item.slider.value = proportional;
+            assignedSoFar += proportional;
+          }
+          item.valEl.textContent = `${item.slider.value}%`;
+        });
+      }
     }
 
-    changedItem.valEl.textContent = `${changedItem.slider.value}%`;
     updateAllocSum();
+    updateDoughnutChart();
     calculateAndRender();
     isAutoBalancing = false;
   }
 
-  // Hook up asset checkbox & slider listeners
+  // Update or Initialize Allocation Doughnut Chart
+  function updateDoughnutChart() {
+    const active = getActiveAssetItems();
+    const labels = active.map(item => item.name);
+    const data = active.map(item => parseInt(item.slider.value, 10) || 0);
+    const colors = active.map(item => item.color);
+
+    // Update legend UI
+    if (doughnutLegend) {
+      doughnutLegend.innerHTML = active.map(item => `
+        <div class="flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${item.color}"></span>
+            <span class="font-bold text-slate-800">${item.name}</span>
+          </div>
+          <span class="font-extrabold text-slate-900">${item.slider.value}%</span>
+        </div>
+      `).join('');
+    }
+
+    const canvas = document.getElementById('chart-allocation-doughnut');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    if (!allocationDoughnutChart) {
+      allocationDoughnutChart = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: colors,
+            borderWidth: 2,
+            borderColor: '#ffffff',
+            hoverOffset: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '68%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ` ${ctx.label}: ${ctx.raw}%`
+              }
+            }
+          }
+        }
+      });
+    } else {
+      allocationDoughnutChart.data.labels = labels;
+      allocationDoughnutChart.data.datasets[0].data = data;
+      allocationDoughnutChart.data.datasets[0].backgroundColor = colors;
+      allocationDoughnutChart.update();
+    }
+  }
+
   ASSET_ITEMS.forEach(item => {
     if (item.chk) {
       item.chk.addEventListener('change', () => {
@@ -420,6 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     syncAssetPillsAndSliders();
     updateAllocSum();
+    updateDoughnutChart();
     calculateAndRender();
     isAutoBalancing = false;
   }
@@ -437,7 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const uk = Number(tradesUk.value) || 0;
     const overseas = Number(tradesOverseas.value) || 0;
     if (tradingSummaryBadge) {
-      tradingSummaryBadge.textContent = `${uk} UK trade${uk === 1 ? '' : 's'} / mo • ${overseas} overseas`;
+      tradingSummaryBadge.textContent = `${uk} UK / mo • ${overseas} overseas`;
     }
   }
 
@@ -460,53 +622,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
   tradeSizeOverseas.addEventListener('input', calculateAndRender);
 
-  // Pension Rules & Badges
-  function updatePensionSummaryBadge() {
-    const hasEmployer = sippEmployerContrib.checked;
-    const mode = pensionWithdrawal.value;
-    let modeText = 'Accumulation';
-    if (mode === 'flexible_drawdown') modeText = 'Drawdown';
-    else if (mode === 'lump_sum') modeText = 'UFPLS';
-    else if (mode === 'annuity') modeText = 'Annuity';
-
-    if (pensionSummaryBadge) {
-      pensionSummaryBadge.textContent = `${hasEmployer ? 'Employer contrib.' : 'No employer contributions'} • ${modeText}`;
-    }
-  }
-
+  // Pension Rules & Alerts
   sippEmployerContrib.addEventListener('change', () => {
     if (sippEmployerContrib.checked) {
       employerContribWarning.classList.remove('hidden');
     } else {
       employerContribWarning.classList.add('hidden');
     }
-    updatePensionSummaryBadge();
     calculateAndRender();
   });
 
-  pensionWithdrawal.addEventListener('change', () => {
-    updatePensionSummaryBadge();
-    calculateAndRender();
-  });
+  pensionWithdrawal.addEventListener('change', calculateAndRender);
 
-  // Horizon & Return Sliders & Badges
-  function updateHorizonSummaryBadge() {
-    const h = horizonYears.value;
-    const r = Number(expectedReturn.value).toFixed(1);
-    if (horizonSummaryBadge) {
-      horizonSummaryBadge.textContent = `${h} years • ${r}% annual return`;
-    }
-  }
-
+  // Horizon & Return Sliders
   horizonYears.addEventListener('input', () => {
     valHorizonDisplay.textContent = `${horizonYears.value} yrs`;
-    updateHorizonSummaryBadge();
+    if (horizonSummaryBadge) {
+      horizonSummaryBadge.textContent = `${horizonYears.value} yrs • ${Number(expectedReturn.value).toFixed(1)}% return`;
+    }
+    if (dragChartSubtitle) {
+      dragChartSubtitle.textContent = `How fees stack up over your ${horizonYears.value}-year horizon at a ${Number(expectedReturn.value).toFixed(1)}% assumed return.`;
+    }
     calculateAndRender();
   });
 
   expectedReturn.addEventListener('input', () => {
-    valReturnDisplay.textContent = `${Number(expectedReturn.value).toFixed(1)}%`;
-    updateHorizonSummaryBadge();
+    const r = Number(expectedReturn.value).toFixed(1);
+    valReturnDisplay.textContent = `${r}%`;
+    if (horizonSummaryBadge) {
+      horizonSummaryBadge.textContent = `${horizonYears.value} yrs • ${r}% return`;
+    }
+    if (dragChartSubtitle) {
+      dragChartSubtitle.textContent = `How fees stack up over your ${horizonYears.value}-year horizon at a ${r}% assumed return.`;
+    }
     calculateAndRender();
   });
 
@@ -612,7 +760,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (currentExcludedPlatforms.length === 0) {
         modalExcludedList.innerHTML = `
           <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center text-xs text-emerald-800">
-            🎉 All 6 major UK platforms fully support your current investment selection!
+            🎉 All 7 platforms fully support your current investment selection!
           </div>
         `;
       } else {
@@ -649,7 +797,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (btnViewReasonsLink) btnViewReasonsLink.addEventListener('click', openEligibilityReasonsModal);
-  if (btnViewReasonsCard) btnViewReasonsCard.addEventListener('click', openEligibilityReasonsModal);
   if (btnCloseReasonsModal) btnCloseReasonsModal.addEventListener('click', closeEligibilityReasonsModal);
   if (btnCloseReasonsModalBottom) btnCloseReasonsModalBottom.addEventListener('click', closeEligibilityReasonsModal);
 
@@ -660,9 +807,6 @@ document.addEventListener('DOMContentLoaded', () => {
       body: `
         <p><strong>The Core Principle:</strong> Most UK brokers charge an ongoing custody fee either as a percentage of your portfolio (e.g. <strong>Vanguard 0.15%</strong>, <strong>AJ Bell 0.25%</strong>, <strong>Hargreaves Lansdown 0.45%</strong>) or as a flat subscription fee (e.g. <strong>Interactive Investor at £143.88/year</strong>).</p>
         <p><strong>The Tipping Point:</strong> When your portfolio is under <strong>£30,000 - £50,000</strong>, percentage brokers are almost always cheaper. However, as your wealth compounds past <strong>£60,000 to £100,000+</strong>, Interactive Investor's flat subscription or AJ Bell's £42/year share cap saves hundreds of pounds per year compared to uncapped percentage models.</p>
-        <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 font-medium">
-          💡 Check out the <strong>"Compounding & Crossover" tab</strong> at the top to see your personal crossover curve visualized across all pot sizes!
-        </div>
       `
     },
     'sipp-contrib': {
@@ -717,36 +861,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnCloseTradeoffModal) btnCloseTradeoffModal.addEventListener('click', closeTradeoffModal);
   if (btnCloseTradeoffModalBottom) btnCloseTradeoffModalBottom.addEventListener('click', closeTradeoffModal);
 
-  // Tabs Switching
-  navTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      const targetId = tab.dataset.tab;
-      navTabs.forEach(t => {
-        t.classList.remove('active-tab', 'text-slate-900', 'border-b-2', 'border-emerald-600');
-        t.classList.add('text-slate-500');
-      });
-      tab.classList.add('active-tab', 'text-slate-900', 'border-b-2', 'border-emerald-600');
-      tab.classList.remove('text-slate-500');
-
-      tabContents.forEach(content => {
-        if (content.id === targetId) {
-          content.classList.remove('hidden');
-        } else {
-          content.classList.add('hidden');
-        }
-      });
-
-      if (targetId === 'tab-charts') {
-        setTimeout(() => {
-          if (compoundingDragChart) compoundingDragChart.resize();
-          if (crossoverChart) crossoverChart.resize();
-        }, 50);
-      }
-    });
-  });
-
-  // Reset to Defaults (Mockup defaults)
-  btnReset.addEventListener('click', () => {
+  // Reset to Defaults
+  function resetAll() {
     accountIsa.checked = true;
     accountSipp.checked = true;
     accountGia.checked = false;
@@ -789,11 +905,12 @@ document.addEventListener('DOMContentLoaded', () => {
     applyAllocPreset('balanced');
 
     updateTradingSummaryBadge();
-    updatePensionSummaryBadge();
-    updateHorizonSummaryBadge();
-
+    setStep(1);
     calculateAndRender();
-  });
+  }
+
+  if (btnReset) btnReset.addEventListener('click', resetAll);
+  if (btnResetForm) btnResetForm.addEventListener('click', resetAll);
 
   if (btnPrint) {
     btnPrint.addEventListener('click', () => window.print());
@@ -812,30 +929,33 @@ document.addEventListener('DOMContentLoaded', () => {
       // Dynamic summary labels
       const totalLump = inputs.lumpSums.isa + inputs.lumpSums.sipp + inputs.lumpSums.gia;
       const totalMonthly = inputs.monthlyContrib.isa + inputs.monthlyContrib.sipp + inputs.monthlyContrib.gia;
-      if (totalLumpDisplay) totalLumpDisplay.textContent = `Total: ${formatGbpInt(totalLump)}`;
-      if (totalMonthlyDisplay) totalMonthlyDisplay.textContent = `Total: ${formatGbpInt(totalMonthly)} / mo`;
-      if (profileSummaryText) {
-        profileSummaryText.textContent = `${formatGbpInt(totalLump)} invested • ${formatGbpInt(totalMonthly)} monthly • ${inputs.horizonYears}-year horizon`;
-      }
+      if (totalLumpDisplay) totalLumpDisplay.textContent = formatGbpInt(totalLump);
+      if (totalMonthlyDisplay) totalMonthlyDisplay.textContent = `${formatGbpInt(totalMonthly)} / mo`;
 
       // Execute Comparison Engine
       const rankedPlatforms = PlatformCalculator.compareAllPlatforms(inputs);
       currentExcludedPlatforms = rankedPlatforms.excludedPlatforms || [];
 
-      // 1. Render Sub-bar & Highlight Banner
-      renderStatusAndHighlight(rankedPlatforms);
+      // 1. Render Hero Headline Result Card & Stats
+      renderHeroResult(rankedPlatforms, inputs, totalLump, totalMonthly);
 
-      // 2. Render Platform Leaderboard Cards
-      renderPlatformCards(rankedPlatforms);
+      // 2. Render Winner #1 Card
+      renderWinnerCard(rankedPlatforms);
 
-      // 3. Render Excluded Platforms Banner
-      renderExcludedBanner(currentExcludedPlatforms);
+      // 3. Render Runners-up Cards
+      renderRunnersUpCards(rankedPlatforms);
 
-      // 4. Render Fee Breakdown Table
-      renderBreakdownTable(rankedPlatforms);
+      // 4. Render Excluded Platforms Card
+      renderExcludedPlatformsCard(currentExcludedPlatforms);
 
-      // 5. Render Charts
-      renderCharts(rankedPlatforms, inputs);
+      // 5. Render Annual Fee Decomposition Stacked Bar Chart
+      renderFeeDecompositionChart(rankedPlatforms);
+
+      // 6. Render Compounding Cumulative Drag Line Chart
+      renderCompoundingDragChart(rankedPlatforms, inputs);
+
+      // 7. Update Platform Rules Matrix Table
+      renderRulesMatrixCostRow(rankedPlatforms, inputs);
 
       // Refresh Lucide Icons
       if (window.lucide && window.lucide.createIcons) {
@@ -846,10 +966,66 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Render Sub-bar & Lowest Cost Highlight Banner
-  function renderStatusAndHighlight(rankedPlatforms) {
+  // Render Hero Headline Result Banner (Requirement 2)
+  function renderHeroResult(rankedPlatforms, inputs, totalLump, totalMonthly) {
     const compCount = rankedPlatforms.length;
     const exclCount = currentExcludedPlatforms.length;
+
+    if (heroEligibleStat) heroEligibleStat.textContent = `${compCount} eligible for your profile`;
+    if (heroExcludedStat) heroExcludedStat.textContent = `${exclCount} excluded — reasons below`;
+
+    // Projected pot approximation: FV of lump sum + FV of annuity
+    const r = inputs.expectedReturnRate;
+    const n = inputs.horizonYears;
+    const lumpFv = totalLump * Math.pow(1 + r, n);
+    const monthlyRate = r / 12;
+    const totalMonths = n * 12;
+    const monthlyFv = monthlyRate > 0 ? totalMonthly * ((Math.pow(1 + monthlyRate, totalMonths) - 1) / monthlyRate) : totalMonthly * totalMonths;
+    const totalProjectedPot = lumpFv + monthlyFv;
+
+    if (heroPotStat) heroPotStat.textContent = `${formatGbpInt(totalProjectedPot)} projected portfolio value`;
+
+    if (heroParamInvested) heroParamInvested.textContent = `${formatGbpInt(totalLump)} invested`;
+    if (heroParamMonthly) heroParamMonthly.textContent = `${formatGbpInt(totalMonthly)}/month`;
+    if (heroParamHorizon) heroParamHorizon.textContent = `${inputs.horizonYears}-year horizon`;
+    if (heroParamReturn) heroParamReturn.textContent = `${(inputs.expectedReturnRate * 100).toFixed(1)}% return`;
+
+    if (compCount >= 2) {
+      const winner = rankedPlatforms[0];
+      // Compare against the second platform or highest eligible
+      const competitor = rankedPlatforms[compCount - 1];
+      const annualSavings = competitor.yearOneTotalFee - winner.yearOneTotalFee;
+      const tenYearSavings = competitor.tenYearCost - winner.tenYearCost;
+
+      if (heroBannerWinnerLabel) {
+        heroBannerWinnerLabel.textContent = `${winner.platform.name} saves you`;
+      }
+
+      // Animate big money number
+      if (heroBannerAmount) {
+        animateValue(heroBannerAmount, lastHeadlineEndValue, annualSavings, 400, '£', '/year');
+        lastHeadlineEndValue = annualSavings;
+      }
+
+      if (heroBannerDiff) {
+        heroBannerDiff.textContent = `≈ ${formatGbpInt(tenYearSavings)} over ${inputs.horizonYears} years vs ${competitor.platform.name}`;
+      }
+    } else if (compCount === 1) {
+      const winner = rankedPlatforms[0];
+      if (heroBannerWinnerLabel) heroBannerWinnerLabel.textContent = `${winner.platform.name} is the sole match`;
+      if (heroBannerAmount) {
+        heroBannerAmount.innerHTML = `£${winner.yearOneTotalFee.toFixed(2)}<span class="text-base font-sans font-semibold text-slate-500"> /year</span>`;
+      }
+      if (heroBannerDiff) {
+        heroBannerDiff.textContent = `10-year cumulative fees: ${formatGbpInt(winner.tenYearCost)}`;
+      }
+    } else {
+      if (heroBannerWinnerLabel) heroBannerWinnerLabel.textContent = 'No eligible platform';
+      if (heroBannerAmount) {
+        heroBannerAmount.innerHTML = `£0.00<span class="text-base font-sans font-semibold text-slate-500"> /year</span>`;
+      }
+      if (heroBannerDiff) heroBannerDiff.textContent = 'Check your asset or pension selections';
+    }
 
     if (statusEligibleCount) {
       statusEligibleCount.innerHTML = `
@@ -857,442 +1033,476 @@ document.addEventListener('DOMContentLoaded', () => {
         <span>${compCount} eligible platform${compCount === 1 ? '' : 's'}</span>
       `;
     }
-
     if (statusExcludedText) {
       statusExcludedText.textContent = `${exclCount} excluded`;
     }
-
-    if (lowestCostBanner) {
-      if (compCount >= 2) {
-        const lowest = rankedPlatforms[0];
-        const highest = rankedPlatforms[compCount - 1];
-        const diff = highest.yearOneTotalFee - lowest.yearOneTotalFee;
-        lowestCostBanner.classList.remove('hidden');
-        if (bannerLowestTitle) bannerLowestTitle.textContent = `Lowest estimated cost: ${lowest.platform.name}`;
-        if (bannerLowestDesc) {
-          bannerLowestDesc.textContent = `£${diff.toFixed(2)} / year less than the highest-cost eligible platform (${highest.yearOneTotalFee.toFixed(2)} minus ${lowest.yearOneTotalFee.toFixed(2)}).`;
-        }
-      } else if (compCount === 1) {
-        lowestCostBanner.classList.remove('hidden');
-        const lowest = rankedPlatforms[0];
-        if (bannerLowestTitle) bannerLowestTitle.textContent = `Lowest estimated cost: ${lowest.platform.name}`;
-        if (bannerLowestDesc) {
-          bannerLowestDesc.textContent = `Sole qualifying platform based on your exact criteria. Year 1 cost: ${formatGbp(lowest.yearOneTotalFee)}.`;
-        }
-      } else {
-        lowestCostBanner.classList.add('hidden');
-      }
-    }
   }
 
-  // Render Platform Cards matching Mockup
-  function renderPlatformCards(rankedPlatforms) {
-    if (!platformCardsContainer) return;
-    platformCardsContainer.innerHTML = '';
-
-    const isMonthly = (costViewMode === 'monthly');
+  // Render #1 Winner Platform Card (Requirement 3: Raised Card with Gold Border & Ribbon)
+  function renderWinnerCard(rankedPlatforms) {
+    if (!winnerCardContainer) return;
+    winnerCardContainer.innerHTML = '';
 
     if (rankedPlatforms.length === 0) {
-      platformCardsContainer.innerHTML = `
+      winnerCardContainer.innerHTML = `
         <div class="p-6 rounded-2xl bg-amber-50 border border-amber-200 text-center space-y-2">
           <i data-lucide="alert-circle" class="w-8 h-8 text-amber-600 mx-auto"></i>
-          <h4 class="font-bold text-amber-900 text-sm">No platforms satisfy this exact combination</h4>
-          <p class="text-xs text-amber-800">Please review your selected investment types or employer contribution option in the left panel.</p>
+          <h4 class="font-bold text-amber-900 text-sm">No platforms satisfy this exact portfolio combination</h4>
+          <p class="text-xs text-amber-800">Please review your selected investment types (e.g. mutual funds vs ETFs) or employer pension settings in the left panel.</p>
         </div>
       `;
       return;
     }
 
-    rankedPlatforms.forEach((result, idx) => {
+    const winner = rankedPlatforms[0];
+    const p = winner.platform;
+    const isMonthly = (costViewMode === 'monthly');
+
+    const monthlyCost = winner.yearOneTotalFee / 12;
+    const annualCost = winner.yearOneTotalFee;
+
+    const monthlyPlatform = winner.totalPlatformFee / 12;
+    const annualPlatform = winner.totalPlatformFee;
+    const monthlyDealing = winner.totalDealingFee / 12;
+    const annualDealing = winner.totalDealingFee;
+    const monthlyRegular = winner.regularInvestingFee / 12;
+    const annualRegular = winner.regularInvestingFee;
+    const monthlyFx = winner.fxFee / 12;
+    const annualFx = winner.fxFee;
+
+    const compPlatform = rankedPlatforms[1] || rankedPlatforms[0];
+    const diffYear = compPlatform.yearOneTotalFee - winner.yearOneTotalFee;
+    const diffHorizon = compPlatform.tenYearCost - winner.tenYearCost;
+
+    const savingsText = (rankedPlatforms.length > 1 && diffYear > 0)
+      ? `Saves <strong>${formatGbp(diffYear)}</strong> a year vs ${compPlatform.platform.name} — <strong>${formatGbpInt(diffHorizon)}</strong> over horizon.`
+      : `${p.badge || 'Lowest overall total cost for this profile.'}`;
+
+    const card = document.createElement('div');
+    card.className = 'winner-card-raised rounded-2xl p-6 space-y-5 relative';
+
+    card.innerHTML = `
+      <!-- Ribbon Badge Top Left -->
+      <div class="flex items-center justify-between">
+        <span class="ribbon-best-value flex items-center gap-1.5">
+          <span>🏆</span>
+          <span>BEST VALUE</span>
+        </span>
+        <span class="text-xs font-extrabold uppercase tracking-widest text-[#0c1e35]/60">
+          CHEAPEST FOR THIS PROFILE
+        </span>
+      </div>
+
+      <!-- Main Winner Brand & Big Price Row -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+        <div class="space-y-1">
+          <div class="flex items-center gap-3">
+            ${getPlatformBrandHtml(p.id, p.name)}
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed pt-1">
+            ${savingsText}
+          </p>
+        </div>
+
+        <div class="text-left sm:text-right shrink-0">
+          <div class="font-serif-headline text-3xl sm:text-4xl font-black text-[#0c1e35]">
+            ${formatGbp(isMonthly ? monthlyCost : annualCost)}<span class="text-sm font-sans font-bold text-slate-500"> ${isMonthly ? '/ month' : '/ year'}</span>
+          </div>
+          <span class="text-[11px] text-slate-500 font-semibold block mt-0.5">
+            ${isMonthly ? `${formatGbp(annualCost)} / year` : `${formatGbp(monthlyCost)} / month`} • <span class="text-emerald-700 font-bold">${winner.effectiveFeePct.toFixed(2)}% fee drag</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- 4 Cost Decomposition Metrics with subtle dividers -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3 border-t border-slate-100 text-xs">
+        <div class="bg-slate-50/80 p-2.5 rounded-xl text-center border border-slate-100">
+          <span class="text-[11px] text-slate-500 font-semibold block">Platform fee</span>
+          <span class="font-extrabold text-slate-900 text-sm">${formatGbp(isMonthly ? monthlyPlatform : annualPlatform)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
+        </div>
+        <div class="bg-slate-50/80 p-2.5 rounded-xl text-center border border-slate-100">
+          <span class="text-[11px] text-slate-500 font-semibold block">Dealing</span>
+          <span class="font-extrabold text-slate-900 text-sm">${formatGbp(isMonthly ? monthlyDealing : annualDealing)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
+        </div>
+        <div class="bg-slate-50/80 p-2.5 rounded-xl text-center border border-slate-100">
+          <span class="text-[11px] text-slate-500 font-semibold block">Regular inv.</span>
+          <span class="font-extrabold text-slate-900 text-sm">${formatGbp(isMonthly ? monthlyRegular : annualRegular)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
+        </div>
+        <div class="bg-slate-50/80 p-2.5 rounded-xl text-center border border-slate-100">
+          <span class="text-[11px] text-slate-500 font-semibold block">FX fee</span>
+          <span class="font-extrabold text-slate-900 text-sm">${formatGbp(isMonthly ? monthlyFx : annualFx)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
+        </div>
+      </div>
+
+      <!-- Action Row: 5-Yr Horizon Cost & Drawer Toggle -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
+        <div class="flex items-center gap-3">
+          <span class="text-emerald-700 font-bold flex items-center gap-1">
+            <i data-lucide="check" class="w-4 h-4 text-emerald-600"></i>
+            <span>Meets 100% of criteria</span>
+          </span>
+          <span class="text-slate-600 font-medium">5-year fees <strong>${formatGbpInt(winner.fiveYearCost)}</strong></span>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button class="btn-toggle-drawer text-xs text-slate-600 hover:text-slate-900 font-bold flex items-center gap-1 transition">
+            <span>Pros, cons & details</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 transition-transform"></i>
+          </button>
+          <a href="${p.officialUrl}" target="_blank" rel="noopener noreferrer" class="bg-[#0c1e35] hover:bg-[#071324] text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm transition">
+            <span>Visit platform</span>
+            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-300"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Collapsible Pros & Cons Drawer -->
+      <div class="pros-cons-drawer hidden pt-3 border-t border-slate-100 space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div class="space-y-1">
+            <span class="font-bold text-emerald-800 flex items-center gap-1">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span>Key Strengths / Pros</span>
+            </span>
+            <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
+              ${p.pros.map(pro => `<li>${pro}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="space-y-1">
+            <span class="font-bold text-red-800 flex items-center gap-1">
+              <i data-lucide="x" class="w-3.5 h-3.5 text-red-600"></i>
+              <span>Limitations / Cons</span>
+            </span>
+            <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
+              ${p.cons.map(con => `<li>${con}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-3 gap-2 text-[11px]">
+          <div>
+            <span class="text-slate-400 block font-medium">Interest on Cash:</span>
+            <span class="font-bold text-slate-800">${p.features.interestOnCash}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block font-medium">Customer Support:</span>
+            <span class="font-bold text-slate-800">${p.features.customerService}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block font-medium">Mobile App Rating:</span>
+            <span class="font-bold text-slate-800">${p.features.mobileAppRating}</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Attach drawer toggle
+    const toggleBtn = card.querySelector('.btn-toggle-drawer');
+    const drawer = card.querySelector('.pros-cons-drawer');
+    if (toggleBtn && drawer) {
+      toggleBtn.addEventListener('click', () => {
+        const isClosed = drawer.classList.contains('hidden');
+        if (isClosed) {
+          drawer.classList.remove('hidden');
+          toggleBtn.querySelector('i')?.classList.add('rotate-180');
+        } else {
+          drawer.classList.add('hidden');
+          toggleBtn.querySelector('i')?.classList.remove('rotate-180');
+        }
+      });
+    }
+
+    winnerCardContainer.appendChild(card);
+  }
+
+  // Render Runners-Up Platforms (Requirement 3: Smaller Cards in 2-Column Grid with Relative Cost Bars)
+  function renderRunnersUpCards(rankedPlatforms) {
+    if (!runnersUpGrid) return;
+    runnersUpGrid.innerHTML = '';
+
+    if (rankedPlatforms.length <= 1) {
+      runnersUpGrid.parentElement.classList.add('hidden');
+      return;
+    }
+    runnersUpGrid.parentElement.classList.remove('hidden');
+
+    const winner = rankedPlatforms[0];
+    const runners = rankedPlatforms.slice(1);
+    const isMonthly = (costViewMode === 'monthly');
+
+    // Max cost difference among runners for bar width calculation
+    const maxDiff = Math.max(...runners.map(r => r.yearOneTotalFee - winner.yearOneTotalFee), 1);
+
+    runners.forEach(result => {
       const p = result.platform;
-      const isWinner = (idx === 0);
-      const rankNumStr = String(idx + 1).padStart(2, '0');
+      const diffYear = result.yearOneTotalFee - winner.yearOneTotalFee;
+      const pctBar = Math.min(100, Math.max(12, (diffYear / maxDiff) * 100));
 
-      const monthlyCost = result.yearOneTotalFee / 12;
-      const annualCost = result.yearOneTotalFee;
-
-      const monthlyPlatform = result.totalPlatformFee / 12;
-      const annualPlatform = result.totalPlatformFee;
-
-      const monthlyDealing = result.totalDealingFee / 12;
-      const annualDealing = result.totalDealingFee;
-
-      const monthlyRegular = result.regularInvestingFee / 12;
-      const annualRegular = result.regularInvestingFee;
-
-      const monthlyFx = result.fxFee / 12;
-      const annualFx = result.fxFee;
+      const costVal = isMonthly ? (result.yearOneTotalFee / 12) : result.yearOneTotalFee;
+      const costSuffix = isMonthly ? '/ year' : '/ year'; // As shown in mockup e.g. £119.76 / year
+      const horizonTotalText = formatGbpInt(result.tenYearCost);
 
       const card = document.createElement('div');
-      card.className = `platform-card bg-white rounded-xl p-4 space-y-3.5 shadow-2xs ${
-        isWinner ? 'winner-card' : 'border border-slate-200'
-      }`;
+      card.className = 'runner-card rounded-2xl p-4 space-y-3';
 
-      if (isWinner) {
-        // Winner Card Layout
-        card.innerHTML = `
-          <!-- Top Row: Badge 01 Lowest cost & Cost Display -->
-          <div class="flex items-center justify-between">
-            <span class="bg-[#fef9c3] text-[#854d0e] border border-[#fef08a] text-[11px] font-bold px-2.5 py-0.5 rounded-md flex items-center gap-1 shadow-2xs">
-              <span>🏆</span>
-              <span>01 · Lowest cost</span>
-            </span>
-            <div class="text-right">
-              <div class="text-xl sm:text-2xl font-black text-slate-900">
-                ${formatGbp(isMonthly ? monthlyCost : annualCost)} <span class="text-xs font-semibold text-slate-500">${isMonthly ? '/ month' : '/ year'}</span>
-              </div>
-              <span class="text-[11px] text-slate-500 block">
-                ${isMonthly ? `${formatGbp(annualCost)} / year` : `${formatGbp(monthlyCost)} / month`} • <span class="text-emerald-700 font-semibold">${result.effectiveFeePct.toFixed(2)}% fee drag</span>
-              </span>
-            </div>
-          </div>
-
-          <!-- Platform Logo & Subtitle -->
-          <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+      card.innerHTML = `
+        <!-- Top Row: Brand on Left, Total 10-Yr Cost on Right -->
+        <div class="flex items-start justify-between gap-2">
+          <div>
             ${getPlatformBrandHtml(p.id, p.name)}
-            <span class="text-xs text-slate-500 font-medium">${p.badge}</span>
           </div>
+          <span class="text-xs font-bold text-slate-500">
+            ${horizonTotalText} total
+          </span>
+        </div>
 
-          <!-- 4 Metrics with vertical dividers -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 pt-2 border-t border-slate-100 text-xs">
-            <div class="metric-divider p-2 text-center">
-              <span class="text-[11px] text-slate-400 font-medium block">Platform</span>
-              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyPlatform : annualPlatform)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
-            </div>
-            <div class="metric-divider p-2 text-center">
-              <span class="text-[11px] text-slate-400 font-medium block">Dealing</span>
-              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyDealing : annualDealing)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
-            </div>
-            <div class="metric-divider p-2 text-center">
-              <span class="text-[11px] text-slate-400 font-medium block">Regular investing</span>
-              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyRegular : annualRegular)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
-            </div>
-            <div class="metric-divider p-2 text-center">
-              <span class="text-[11px] text-slate-400 font-medium block">FX</span>
-              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyFx : annualFx)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
-            </div>
+        <!-- Diff Line & Relative Progress Bar -->
+        <div class="space-y-1.5 pt-1">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="text-rose-600">+${formatGbp(diffYear)} more than ${winner.platform.shortName}</span>
           </div>
-
-          <!-- Bottom Row: Criteria Match, 5-Yr Fees, Accordion, Visit Button -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
-            <div class="flex items-center gap-3">
-              <span class="text-emerald-700 font-bold flex items-center gap-1">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-600"></i>
-                <span>Meets all selected criteria</span>
-              </span>
-              <span class="text-slate-700 font-medium">5-year fees <strong>${formatGbpInt(result.fiveYearCost)}</strong></span>
-            </div>
-            <div class="flex items-center gap-3 self-end sm:self-auto">
-              <button class="btn-toggle-drawer text-xs text-slate-600 hover:text-slate-900 font-medium flex items-center gap-1 transition">
-                <span>Pros, cons & highlights</span>
-                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
-              </button>
-              <a href="${p.officialUrl}" target="_blank" rel="noopener noreferrer" class="bg-[#064e3b] hover:bg-[#043d2e] text-white px-3.5 py-1.5 rounded-lg font-semibold text-xs flex items-center gap-1 shadow-2xs transition">
-                <span>Visit platform</span>
-                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
-              </a>
-            </div>
+          <div class="cost-diff-bar-track">
+            <div class="cost-diff-bar-fill bg-gradient-to-r from-amber-500 to-rose-500" style="width: ${pctBar}%;"></div>
           </div>
+        </div>
 
-          <!-- Collapsible Drawer -->
-          <div class="pros-cons-drawer hidden pt-3 border-t border-slate-100 space-y-3">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div class="space-y-1">
-                <span class="font-bold text-emerald-800 flex items-center gap-1">
-                  <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
-                  <span>Strengths / Pros</span>
-                </span>
-                <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
-                  ${p.pros.map(pro => `<li>${pro}</li>`).join('')}
-                </ul>
-              </div>
-              <div class="space-y-1">
-                <span class="font-bold text-red-800 flex items-center gap-1">
-                  <i data-lucide="x" class="w-3.5 h-3.5 text-red-600"></i>
-                  <span>Limitations / Cons</span>
-                </span>
-                <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
-                  ${p.cons.map(con => `<li>${con}</li>`).join('')}
-                </ul>
-              </div>
-            </div>
-            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 grid grid-cols-3 gap-2 text-[11px]">
-              <div>
-                <span class="text-slate-400 block font-medium">Cash Interest:</span>
-                <span class="font-semibold text-slate-800">${p.features.interestOnCash}</span>
-              </div>
-              <div>
-                <span class="text-slate-400 block font-medium">Support:</span>
-                <span class="font-semibold text-slate-800">${p.features.customerService}</span>
-              </div>
-              <div>
-                <span class="text-slate-400 block font-medium">App Rating:</span>
-                <span class="font-semibold text-slate-800">${p.features.mobileAppRating}</span>
-              </div>
-            </div>
-          </div>
-        `;
-      } else {
-        // Cards 02, 03, 04... Layout
-        card.innerHTML = `
-          <!-- Top Row: Rank Number & Cost Display -->
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <span class="text-sm font-bold text-slate-700 w-5">${rankNumStr}</span>
-              <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                ${getPlatformBrandHtml(p.id, p.name)}
-                <span class="text-xs text-slate-500 font-medium">${p.badge}</span>
-              </div>
-            </div>
-            <div class="text-right">
-              <div class="text-xl sm:text-2xl font-black text-slate-900">
-                ${formatGbp(isMonthly ? monthlyCost : annualCost)} <span class="text-xs font-semibold text-slate-500">${isMonthly ? '/ month' : '/ year'}</span>
-              </div>
-              <span class="text-[11px] text-slate-500 block">
-                ${isMonthly ? `${formatGbp(annualCost)} / year` : `${formatGbp(monthlyCost)} / month`} • <span class="text-slate-600 font-medium">${result.effectiveFeePct.toFixed(2)}% fee drag</span>
-              </span>
-            </div>
-          </div>
+        <!-- Annual Cost Line -->
+        <div class="flex items-center justify-between pt-1 text-xs">
+          <span class="font-extrabold text-slate-800 text-sm">
+            ${formatGbp(result.yearOneTotalFee)} <span class="text-slate-400 font-normal text-xs">/ year</span>
+          </span>
+          <a href="${p.officialUrl}" target="_blank" rel="noopener noreferrer" class="text-slate-500 hover:text-slate-900 font-semibold flex items-center gap-1 transition">
+            <span>Details</span>
+            <i data-lucide="arrow-up-right" class="w-3 h-3 text-slate-400"></i>
+          </a>
+        </div>
+      `;
 
-          <!-- 4 Metrics with vertical dividers -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 pt-2 border-t border-slate-100 text-xs">
-            <div class="metric-divider p-2 text-center">
-              <span class="text-[11px] text-slate-400 font-medium block">Platform</span>
-              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyPlatform : annualPlatform)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
-            </div>
-            <div class="metric-divider p-2 text-center">
-              <span class="text-[11px] text-slate-400 font-medium block">Dealing</span>
-              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyDealing : annualDealing)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
-            </div>
-            <div class="metric-divider p-2 text-center">
-              <span class="text-[11px] text-slate-400 font-medium block">Regular investing</span>
-              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyRegular : annualRegular)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
-            </div>
-            <div class="metric-divider p-2 text-center">
-              <span class="text-[11px] text-slate-400 font-medium block">FX</span>
-              <span class="font-bold text-slate-800 text-sm">${formatGbp(isMonthly ? monthlyFx : annualFx)} <span class="text-[10px] text-slate-400 font-normal">${isMonthly ? '/ mo' : '/ yr'}</span></span>
-            </div>
-          </div>
-
-          <!-- Bottom Row: Criteria Match, 5-Yr Fees, Accordion, Visit Link -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
-            <div class="flex items-center gap-3">
-              <span class="text-emerald-700 font-bold flex items-center gap-1">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-600"></i>
-                <span>Criteria match</span>
-              </span>
-              <span class="text-slate-700 font-medium">5-year fees <strong>${formatGbpInt(result.fiveYearCost)}</strong></span>
-            </div>
-            <div class="flex items-center gap-3 self-end sm:self-auto">
-              <button class="btn-toggle-drawer text-xs text-slate-600 hover:text-slate-900 font-medium flex items-center gap-1 transition">
-                <span>Pros, cons & highlights</span>
-                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
-              </button>
-              <a href="${p.officialUrl}" target="_blank" rel="noopener noreferrer" class="text-slate-600 hover:text-slate-900 font-bold text-xs flex items-center gap-1 transition">
-                <span>Visit platform</span>
-                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-400"></i>
-              </a>
-            </div>
-          </div>
-
-          <!-- Collapsible Drawer -->
-          <div class="pros-cons-drawer hidden pt-3 border-t border-slate-100 space-y-3">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div class="space-y-1">
-                <span class="font-bold text-emerald-800 flex items-center gap-1">
-                  <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
-                  <span>Strengths / Pros</span>
-                </span>
-                <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
-                  ${p.pros.map(pro => `<li>${pro}</li>`).join('')}
-                </ul>
-              </div>
-              <div class="space-y-1">
-                <span class="font-bold text-red-800 flex items-center gap-1">
-                  <i data-lucide="x" class="w-3.5 h-3.5 text-red-600"></i>
-                  <span>Limitations / Cons</span>
-                </span>
-                <ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
-                  ${p.cons.map(con => `<li>${con}</li>`).join('')}
-                </ul>
-              </div>
-            </div>
-            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 grid grid-cols-3 gap-2 text-[11px]">
-              <div>
-                <span class="text-slate-400 block font-medium">Cash Interest:</span>
-                <span class="font-semibold text-slate-800">${p.features.interestOnCash}</span>
-              </div>
-              <div>
-                <span class="text-slate-400 block font-medium">Support:</span>
-                <span class="font-semibold text-slate-800">${p.features.customerService}</span>
-              </div>
-              <div>
-                <span class="text-slate-400 block font-medium">App Rating:</span>
-                <span class="font-semibold text-slate-800">${p.features.mobileAppRating}</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
-      // Attach Toggle Event to Drawer
-      const toggleBtn = card.querySelector('.btn-toggle-drawer');
-      const drawer = card.querySelector('.pros-cons-drawer');
-      if (toggleBtn && drawer) {
-        toggleBtn.addEventListener('click', () => {
-          const isClosed = drawer.classList.contains('hidden');
-          if (isClosed) {
-            drawer.classList.remove('hidden');
-            toggleBtn.querySelector('i')?.classList.add('rotate-180');
-          } else {
-            drawer.classList.add('hidden');
-            toggleBtn.querySelector('i')?.classList.remove('rotate-180');
-          }
-        });
-      }
-
-      platformCardsContainer.appendChild(card);
+      runnersUpGrid.appendChild(card);
     });
   }
 
-  // Render Amber Excluded Platforms Banner
-  function renderExcludedBanner(excluded) {
-    if (!excludedPlatformsBanner) return;
+  // Render Why Platforms Are Excluded Card (Requirement 6 & Mockup)
+  function renderExcludedPlatformsCard(excluded) {
+    if (!excludedPlatformsCard) return;
     if (excluded.length === 0) {
-      excludedPlatformsBanner.classList.add('hidden');
+      excludedPlatformsCard.classList.add('hidden');
       return;
     }
 
-    excludedPlatformsBanner.classList.remove('hidden');
-    if (excludedBannerTitle) {
-      excludedBannerTitle.textContent = `${excluded.length} platform${excluded.length === 1 ? '' : 's'} excluded`;
+    excludedPlatformsCard.classList.remove('hidden');
+    if (excludedCardTitle) {
+      excludedCardTitle.textContent = `Why ${excluded.length} platform${excluded.length === 1 ? '' : 's are'} excluded`;
     }
-    if (excludedBannerList) {
-      excludedBannerList.textContent = excluded.map(ex => ex.platform.name).join(' • ');
+
+    if (excludedPlatformsList) {
+      excludedPlatformsList.innerHTML = excluded.map(ex => {
+        // Collect short readable tags from disqualifiers
+        const tags = [];
+        const disqStr = ex.compatibility.disqualifiers.join(' ').toLowerCase();
+        if (disqStr.includes('mutual funds') || disqStr.includes('oeic')) tags.push('no mutual funds / OEICs');
+        if (disqStr.includes('investment trusts')) tags.push('no investment trusts');
+        if (disqStr.includes('uk shares') || disqStr.includes('single company')) tags.push('no UK shares');
+        if (disqStr.includes('overseas') || disqStr.includes('us shares') || disqStr.includes('continental european')) tags.push('no overseas trading');
+        if (disqStr.includes('employer')) tags.push('no employer SIPP');
+
+        if (tags.length === 0) tags.push('incompatible asset selection');
+
+        return `
+          <div class="flex flex-wrap items-center gap-2 py-1">
+            <div class="flex items-center gap-1.5 font-bold text-slate-800">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span>${ex.platform.name}</span>
+              <span class="text-slate-500 font-normal">— cannot support your selections:</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-1">
+              ${tags.map(t => `<span class="bg-[#fee2e2] text-[#991b1b] px-2 py-0.5 rounded-md text-[11px] font-bold">${t}</span>`).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
     }
   }
 
-  // Render Fee Breakdown Table
-  function renderBreakdownTable(rankedPlatforms) {
-    if (!tableBreakdownBody) return;
-    tableBreakdownBody.innerHTML = '';
+  // Render Annual Fee Decomposition Stacked Bar Chart (Requirement 4)
+  function renderFeeDecompositionChart(rankedPlatforms) {
+    const canvas = document.getElementById('chart-annual-fee-decomposition');
+    if (!canvas || typeof Chart === 'undefined') return;
 
-    rankedPlatforms.forEach((res, idx) => {
-      const isWinner = (idx === 0);
-      const row = document.createElement('tr');
-      row.className = isWinner ? 'bg-emerald-50/60 font-bold' : (idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50');
+    const labels = rankedPlatforms.map(r => r.platform.shortName);
+    const custodyData = rankedPlatforms.map(r => r.totalPlatformFee);
+    const dealingData = rankedPlatforms.map(r => r.totalDealingFee);
+    const regularInvData = rankedPlatforms.map(r => r.regularInvestingFee);
+    const fxData = rankedPlatforms.map(r => r.fxFee);
 
-      row.innerHTML = `
-        <td class="py-2.5 px-3">
-          <div class="flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full ${isWinner ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'} text-[10px] font-bold flex items-center justify-center">
-              ${idx + 1}
-            </span>
-            <span class="font-bold text-slate-900">${res.platform.name}</span>
-          </div>
-        </td>
-        <td class="py-2.5 px-3 text-right text-slate-700">${formatGbp(res.accountFees.isa)}</td>
-        <td class="py-2.5 px-3 text-right text-slate-700">${formatGbp(res.accountFees.sipp)}</td>
-        <td class="py-2.5 px-3 text-right text-slate-700">${formatGbp(res.totalDealingFee)}</td>
-        <td class="py-2.5 px-3 text-right text-slate-700">${formatGbp(res.regularInvestingFee)}</td>
-        <td class="py-2.5 px-3 text-right text-slate-700">${formatGbp(res.fxFee)}</td>
-        <td class="py-2.5 px-3 text-right ${isWinner ? 'text-emerald-700 bg-emerald-100/50' : 'text-slate-900 bg-emerald-50/30'} font-extrabold">
-          <div>${formatGbp(res.yearOneTotalFee)}</div>
-          <div class="text-[10px] text-slate-500 font-normal">${formatGbp(res.yearOneTotalFee / 12)}/mo</div>
-        </td>
-        <td class="py-2.5 px-3 text-right font-bold text-slate-800">
-          ${formatGbpInt(res.fiveYearCost)}
-        </td>
-      `;
+    if (feeDecompositionChart) {
+      feeDecompositionChart.destroy();
+    }
 
-      tableBreakdownBody.appendChild(row);
+    const ctx = canvas.getContext('2d');
+    feeDecompositionChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Custody',
+            data: custodyData,
+            backgroundColor: '#0c1e35', // Navy
+            borderRadius: 0,
+            borderSkipped: false
+          },
+          {
+            label: 'Dealing',
+            data: dealingData,
+            backgroundColor: '#d4952b', // Gold / Mustard
+            borderRadius: 0,
+            borderSkipped: false
+          },
+          {
+            label: 'Regular inv.',
+            data: regularInvData,
+            backgroundColor: '#0d9488', // Emerald Teal
+            borderRadius: 0,
+            borderSkipped: false
+          },
+          {
+            label: 'FX',
+            data: fxData,
+            backgroundColor: '#e11d48', // Coral Red
+            borderRadius: 4,
+            borderSkipped: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${ctx.dataset.label}: £${Number(ctx.raw).toFixed(2)}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            grid: { display: false },
+            ticks: { font: { family: 'Plus Jakarta Sans', weight: 'bold', size: 11 }, color: '#334155' }
+          },
+          y: {
+            stacked: true,
+            ticks: {
+              callback: (v) => `£${Number(v).toLocaleString()}`,
+              font: { family: 'Plus Jakarta Sans', size: 10 },
+              color: '#64748b'
+            },
+            grid: { color: '#f1ede4' }
+          }
+        }
+      }
     });
   }
 
-  // Render Charts
-  function renderCharts(rankedPlatforms, inputs) {
-    if (typeof Chart === 'undefined') return;
+  // Render Cumulative Fee Drag Multi-Line Chart (Requirement 4)
+  function renderCompoundingDragChart(rankedPlatforms, inputs) {
+    const canvas = document.getElementById('chart-compounding-drag');
+    if (!canvas || typeof Chart === 'undefined') return;
 
-    // 1. Compounding Drag Chart
     const horizon = inputs.horizonYears;
-    const yearLabels = Array.from({ length: horizon }, (_, i) => `Yr ${i + 1}`);
+    const yearLabels = Array.from({ length: horizon }, (_, i) => `Y${i + 1}`);
 
-    const compoundingDatasets = rankedPlatforms.map(res => {
+    const datasets = rankedPlatforms.map(res => {
       const data = res.multiYearProjection.map(p => p.cumulativeLostGrowth + p.cumulativeFees);
       return {
         label: res.platform.shortName,
         data: data,
-        borderColor: res.platform.logoColor,
-        backgroundColor: res.platform.logoColor + '15',
-        borderWidth: res.rank === 1 ? 3 : 1.5,
-        tension: 0.2,
-        pointRadius: 2
+        borderColor: res.platform.logoColor || '#0c1e35',
+        backgroundColor: 'transparent',
+        borderWidth: res.rank === 1 ? 3 : 2,
+        tension: 0.25,
+        pointRadius: 2,
+        pointHoverRadius: 5
       };
     });
 
-    const canvasCompounding = document.getElementById('chart-compounding-drag');
-    if (canvasCompounding) {
-      const ctxCompounding = canvasCompounding.getContext('2d');
-      if (compoundingDragChart) compoundingDragChart.destroy();
-      compoundingDragChart = new Chart(ctxCompounding, {
-        type: 'line',
-        data: { labels: yearLabels, datasets: compoundingDatasets },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, family: 'Inter' } } },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => `${ctx.dataset.label}: £${Math.round(ctx.raw).toLocaleString()} total fee drag`
-              }
-            }
-          },
-          scales: {
-            y: { ticks: { callback: (v) => `£${Number(v).toLocaleString()}` }, grid: { color: '#f1f5f9' } },
-            x: { grid: { display: false } }
-          }
-        }
-      });
+    if (compoundingDragChart) {
+      compoundingDragChart.destroy();
     }
 
-    // 2. Fee Crossover Curve by Pot Size
-    const crossoverData = PlatformCalculator.generateCrossoverData(inputs);
-    const crossoverDatasets = crossoverData.datasets.map(ds => ({
-      label: ds.label,
-      data: ds.data,
-      borderColor: ds.borderColor,
-      backgroundColor: ds.borderColor + '10',
-      borderWidth: 2,
-      tension: 0.25,
-      pointRadius: 2
-    }));
-
-    const canvasCrossover = document.getElementById('chart-crossover');
-    if (canvasCrossover) {
-      const ctxCrossover = canvasCrossover.getContext('2d');
-      if (crossoverChart) crossoverChart.destroy();
-      crossoverChart = new Chart(ctxCrossover, {
-        type: 'line',
-        data: { labels: crossoverData.labels, datasets: crossoverDatasets },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, family: 'Inter' } } },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => `${ctx.dataset.label}: £${Math.round(ctx.raw).toLocaleString()}/yr`
-              }
+    const ctx = canvas.getContext('2d');
+    compoundingDragChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: yearLabels,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              boxWidth: 10,
+              font: { size: 11, family: 'Plus Jakarta Sans', weight: 'bold' },
+              color: '#334155'
             }
           },
-          scales: {
-            y: { ticks: { callback: (v) => `£${Number(v).toLocaleString()}` }, grid: { color: '#f1f5f9' } },
-            x: { grid: { display: false } }
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${ctx.dataset.label}: £${Math.round(ctx.raw).toLocaleString()} total fee drag`
+            }
+          }
+        },
+        scales: {
+          y: {
+            ticks: {
+              callback: (v) => `£${Number(v).toLocaleString()}`,
+              font: { family: 'Plus Jakarta Sans', size: 10 },
+              color: '#64748b'
+            },
+            grid: { color: '#f1ede4' }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#64748b' }
           }
         }
-      });
-    }
+      }
+    });
+  }
+
+  // Update Dynamic Platform Rules Matrix Cost Row
+  function renderRulesMatrixCostRow(rankedPlatforms) {
+    const map = {};
+    rankedPlatforms.forEach(r => {
+      map[r.platform.id] = formatGbpInt(r.tenYearCost);
+    });
+
+    const ids = [
+      { id: 'aj-bell', elId: 'matrix-cost-aj-bell' },
+      { id: 'interactive-investor', elId: 'matrix-cost-ii' },
+      { id: 'hargreaves-lansdown', elId: 'matrix-cost-hl' },
+      { id: 'trading-212', elId: 'matrix-cost-t212' },
+      { id: 'fidelity', elId: 'matrix-cost-fidelity' },
+      { id: 'vanguard', elId: 'matrix-cost-vanguard' },
+      { id: 'ig', elId: 'matrix-cost-ig' }
+    ];
+
+    ids.forEach(({ id, elId }) => {
+      const el = document.getElementById(elId);
+      if (el) {
+        if (map[id]) {
+          el.textContent = map[id];
+          el.className = 'py-2.5 px-2 text-slate-900 font-extrabold';
+        } else {
+          el.textContent = '—';
+          el.className = 'py-2.5 px-2 text-slate-400 font-semibold';
+        }
+      }
+    });
   }
 
   // Visitor Counter Tracking (100% Real Organic Count)
@@ -1300,14 +1510,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const countDisplay = document.getElementById('visitor-count-number');
     if (!countDisplay) return;
 
-    // Remove legacy seeded storage key to ensure 1,284 offset is cleared
     try {
       localStorage.removeItem('uk_platform_advisor_visits');
     } catch (e) {}
 
     let totalVisits = parseInt(localStorage.getItem('uk_platform_advisor_real_visits'), 10);
     if (isNaN(totalVisits) || totalVisits < 1) {
-      totalVisits = 35; // Initial verified baseline from visitorbadge.io
+      totalVisits = 35; // Initial baseline
     }
 
     const isCountedSession = sessionStorage.getItem('uk_platform_advisor_session_counted');
@@ -1317,10 +1526,9 @@ document.addEventListener('DOMContentLoaded', () => {
       sessionStorage.setItem('uk_platform_advisor_session_counted', 'true');
     }
 
-    // Immediately display formatted real count
     countDisplay.textContent = totalVisits.toLocaleString();
 
-    // Background sync with online visitor counter (pure organic count)
+    // Background sync with online visitor counter
     fetch('https://api.visitorbadge.io/api/visitors?path=anildutta007-uk-platform-advisor')
       .then(res => res.text())
       .then(svgText => {
@@ -1330,7 +1538,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (match && match[1]) {
           const remoteHits = parseInt(match[1], 10);
           if (!isNaN(remoteHits) && remoteHits > 0) {
-            // Pure real count from remote visitor counter across all users
             if (remoteHits > totalVisits) {
               totalVisits = remoteHits;
               localStorage.setItem('uk_platform_advisor_real_visits', totalVisits.toString());
@@ -1339,17 +1546,15 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       })
-      .catch(() => {
-        // Keep current real count if offline or blocked
-      });
+      .catch(() => {});
   }
 
   // Initialize Application
   initVisitorCounter();
   syncAssetPillsAndSliders();
   updateAllocSum();
+  updateDoughnutChart();
   updateTradingSummaryBadge();
-  updatePensionSummaryBadge();
-  updateHorizonSummaryBadge();
+  setStep(1);
   calculateAndRender();
 });

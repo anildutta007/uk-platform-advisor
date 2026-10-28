@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UK Investment Platform Advisor | ISA, SIPP & GIA Fee Comparison Engine</title>
-  <meta name="description" content="Independent UK fee comparison and recommendation engine for AJ Bell, Interactive Investor, Hargreaves Lansdown, Trading 212, Fidelity, and Vanguard.">
+  <meta name="description" content="Independent UK fee comparison and recommendation engine for AJ Bell, Interactive Investor, Hargreaves Lansdown, Trading 212, Fidelity, Vanguard, and IG.">
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -14,13 +14,25 @@
       theme: {
         extend: {
           colors: {
-            brand: {
-              50: '#ecfdf5',
-              100: '#d1fae5',
-              600: '#059669',
-              700: '#047857',
-              800: '#065f46',
-              900: '#064e3b'
+            navy: {
+              900: '#071324',
+              850: '#0a192f',
+              800: '#0c1e35',
+              700: '#132742',
+              600: '#1e3a5f'
+            },
+            gold: {
+              400: '#f5b955',
+              500: '#e5a93c',
+              600: '#d4952b',
+              700: '#b87c1c'
+            },
+            warm: {
+              50: '#fdfcf9',
+              100: '#f8f6f0',
+              200: '#f1ede4',
+              300: '#e8e4dc',
+              400: '#d9d2c5'
             }
           }
         }
@@ -28,10 +40,10 @@
     }
   </script>
 
-  <!-- Google Fonts: Inter -->
+  <!-- Google Fonts: Newsreader (Editorial Serif) & Plus Jakarta Sans (Modern Sans) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -41,634 +53,727 @@
 
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-[#f8fafc] text-slate-900 min-h-screen flex flex-col antialiased">
+<body class="bg-[#f8f6f0] text-slate-900 min-h-screen flex flex-col antialiased">
 
-  <!-- Top Navigation Header -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+  <!-- DEEP NAVY HEADER AREA -->
+  <header class="bg-[#0c1e35] text-white border-b border-[#132742] shadow-md">
+    <!-- Top Navigation Bar -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between border-b border-white/10">
       <!-- Left Logo & Branding -->
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full border border-slate-300 flex items-center justify-center text-slate-800">
-          <i data-lucide="compass" class="w-5 h-5 text-slate-800"></i>
+        <div class="w-9 h-9 rounded-full bg-[#e5a93c] text-[#0a192f] font-serif font-black flex items-center justify-center text-sm shadow-sm shrink-0">
+          PA
         </div>
         <div>
-          <span class="font-bold text-slate-900 text-sm tracking-tight block">UK Platform Advisor</span>
-          <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">ISA · SIPP · GIA</span>
+          <span class="font-serif-headline font-bold text-white text-base tracking-tight block">UK Platform Advisor</span>
+          <span class="text-[11px] text-slate-300 font-medium tracking-wide block">ISA · SIPP · GIA — independent comparison</span>
         </div>
-      </div>
-
-      <!-- Center Subtitle (Mockup) -->
-      <div class="hidden md:block text-center">
-        <span class="text-xs font-semibold text-slate-800 block">Independent platform comparison</span>
-        <span class="text-[11px] text-slate-400 block">Illustrative redesign • figures from current app</span>
       </div>
 
       <!-- Right Action Links & Live Visitor Counter -->
       <div class="flex items-center gap-2 sm:gap-3 text-xs flex-wrap">
-        <a href="https://www.dutta-webapps.com/" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-800 hover:text-emerald-700 flex items-center gap-1 transition">
+        <a href="https://www.dutta-webapps.com/" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-200 hover:text-[#e5a93c] flex items-center gap-1 transition px-2 py-1 rounded-md hover:bg-white/5">
           <span>Anil Dutta Portal</span>
           <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-400"></i>
         </a>
-        <span class="text-slate-200 hidden sm:inline">|</span>
-        <button id="btn-print" class="hidden sm:inline-flex items-center gap-1.5 font-semibold text-slate-700 hover:text-slate-900 transition" title="Export or print summary">
-          <i data-lucide="download" class="w-3.5 h-3.5 text-slate-500"></i>
-          <span>Export summary</span>
-        </button>
-        <span class="text-slate-200 hidden sm:inline">|</span>
-        <button id="btn-reset" class="inline-flex items-center gap-1.5 font-semibold text-slate-700 hover:text-slate-900 transition" title="Reset all selections">
-          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-slate-500"></i>
-          <span class="hidden sm:inline">Reset</span>
-        </button>
-        <span class="text-slate-200">|</span>
 
-        <!-- Prominent Live Visitor Counter on Top -->
-        <div id="visitor-counter-badge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 hover:bg-slate-100/90 border border-slate-200 text-xs shadow-2xs transition" title="Live unique visitors to UK Platform Advisor">
-          <span class="relative flex h-2 w-2 flex-shrink-0" title="Live visitor tracking active">
+        <!-- Prominent Live Visitor Counter -->
+        <div id="visitor-counter-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-xs text-white shadow-xs transition" title="Live unique visitors to UK Platform Advisor">
+          <span class="relative flex h-2 w-2 shrink-0">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <i data-lucide="users" class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0"></i>
-          <span class="text-slate-500 font-medium">Visitors:</span>
-          <span id="visitor-count-number" class="font-extrabold text-slate-900 tabular-nums">35</span>
+          <i data-lucide="users" class="w-3.5 h-3.5 text-[#e5a93c] shrink-0"></i>
+          <span class="text-slate-300 font-medium">Visitors:</span>
+          <span id="visitor-count-number" class="font-extrabold text-white tabular-nums">35</span>
+        </div>
+
+        <span class="hidden lg:inline-flex px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300 text-xs font-medium">
+          Illustrative redesign
+        </span>
+
+        <button id="btn-print" class="inline-flex items-center gap-1.5 font-bold text-[#0a192f] bg-[#e5a93c] hover:bg-[#d4952b] px-3.5 py-1.5 rounded-lg text-xs shadow-sm transition" title="Export or print summary">
+          <i data-lucide="download" class="w-3.5 h-3.5 text-[#0a192f]"></i>
+          <span>Export summary</span>
+        </button>
+
+        <button id="btn-reset" class="inline-flex items-center gap-1 font-semibold text-slate-300 hover:text-white px-2 py-1 text-xs transition" title="Reset all selections">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-slate-400"></i>
+          <span class="hidden sm:inline">Reset</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Hero Content: Title on Left, Floating Headline Result Banner on Right -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <!-- Left Hero Text -->
+      <div class="lg:col-span-7 space-y-3">
+        <span class="text-[11px] font-extrabold uppercase tracking-widest text-[#e5a93c] block">
+          INDEPENDENT PLATFORM COMPARISON
+        </span>
+        <h1 class="font-serif-headline text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
+          Find the cheapest UK investment platform for you.
+        </h1>
+        <p class="text-slate-300 text-sm sm:text-base max-w-xl leading-relaxed">
+          Enter your accounts, allocations and trading habits — the advisor ranks every platform by what it will actually cost you, year by year.
+        </p>
+
+        <!-- Dynamic Hero Stats Line -->
+        <div class="pt-4 border-t border-white/10 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-300">
+          <span>7 UK platforms analysed</span>
+          <span class="text-white/30 hidden sm:inline">•</span>
+          <span class="text-[#e5a93c] font-bold" id="hero-eligible-stat">5 eligible for your profile</span>
+          <span class="text-white/30 hidden sm:inline">•</span>
+          <span class="text-slate-300" id="hero-excluded-stat">2 excluded — reasons below</span>
+          <span class="text-white/30 hidden sm:inline">•</span>
+          <span class="font-bold text-white" id="hero-pot-stat">£128,817 projected portfolio value</span>
+        </div>
+      </div>
+
+      <!-- Right Headline Result Floating Banner Card -->
+      <div class="lg:col-span-5">
+        <div id="hero-headline-card" class="bg-white rounded-2xl p-6 text-slate-900 shadow-2xl border border-slate-100 max-w-md ml-auto">
+          <div class="flex items-center justify-between">
+            <span class="bg-[#fef3c7] text-[#78350f] border border-[#fde68a] text-xs font-black px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+              <span>🏆</span>
+              <span>Best value</span>
+            </span>
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Live calculation</span>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block" id="hero-banner-winner-label">
+              Winner saves you
+            </span>
+            <div class="font-serif-headline text-4xl sm:text-5xl font-black text-[#0c1e35] my-1" id="hero-banner-amount">
+              £165.75<span class="text-base font-sans font-semibold text-slate-500"> /year</span>
+            </div>
+            <div class="text-xs font-bold text-slate-700 mt-1" id="hero-banner-diff">
+              ≈ £2,922 over 10 years vs Fidelity
+            </div>
+          </div>
+
+          <!-- Dynamic Portfolio Params Row -->
+          <div class="mt-5 pt-3 border-t border-slate-100 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-slate-600 font-medium text-center" id="hero-banner-params">
+            <div class="bg-slate-50 py-1 px-1.5 rounded" id="hero-param-invested">£40,000 invested</div>
+            <div class="bg-slate-50 py-1 px-1.5 rounded" id="hero-param-monthly">£400/month</div>
+            <div class="bg-slate-50 py-1 px-1.5 rounded" id="hero-param-horizon">10-year horizon</div>
+            <div class="bg-slate-50 py-1 px-1.5 rounded" id="hero-param-return">6.0% return</div>
+          </div>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Main Container -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pb-10 space-y-4">
+  <!-- MAIN WORKSPACE -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
-    <!-- Page Title Subheader -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-5 pb-1">
-      <div>
-        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Your platform comparison</h1>
-        <p id="profile-summary-text" class="text-xs text-slate-500 font-medium">£40,000 invested • £400 monthly • 10-year horizon</p>
-      </div>
-      <div class="flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-2xs self-start sm:self-auto">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span>Live calculation</span>
-      </div>
-    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-    <!-- Two-Column Workspace -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
-      <!-- LEFT COLUMN: Investment Profile Questionnaire (5 cols) -->
-      <section class="lg:col-span-5 space-y-2">
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs space-y-5">
+      <!-- LEFT COLUMN: INVESTMENT PROFILE QUESTIONNAIRE (5 cols) -->
+      <section class="lg:col-span-5 space-y-3">
+        <div class="bg-white rounded-2xl border border-[#e8e4dc] p-6 shadow-sm space-y-5">
 
           <!-- Card Header -->
-          <div class="flex items-center justify-between">
-            <h2 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <span>Investment profile</span>
-              <i data-lucide="edit-3" class="w-3.5 h-3.5 text-slate-400"></i>
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h2 class="font-serif-headline text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span>Your investment profile</span>
             </h2>
+            <button id="btn-reset-form" class="text-xs font-semibold text-slate-500 hover:text-slate-900 flex items-center gap-1 transition" title="Reset to defaults">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              <span>Reset</span>
+            </button>
           </div>
 
-          <!-- 01 Accounts & lump sum -->
-          <div class="space-y-2.5">
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-bold text-slate-900">01 Accounts & lump sum</span>
-              <span id="total-lump-display" class="font-bold text-slate-900">Total: £40,000</span>
-            </div>
-
-            <div class="space-y-2">
-              <!-- Stocks & Shares ISA -->
-              <div class="flex items-center justify-between gap-2 text-xs">
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                  <input type="checkbox" id="account-isa" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
-                  <span class="font-medium text-slate-800">Stocks & Shares ISA</span>
-                </label>
-                <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-md px-2 py-1 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition">
-                  <span class="text-slate-400 font-medium">£</span>
-                  <input type="number" id="lump-isa" value="25000" min="0" step="1000" class="w-20 text-right font-medium text-slate-800 focus:outline-none text-xs">
-                </div>
-              </div>
-
-              <!-- SIPP -->
-              <div class="flex items-center justify-between gap-2 text-xs">
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                  <input type="checkbox" id="account-sipp" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
-                  <span class="font-medium text-slate-800">SIPP</span>
-                </label>
-                <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-md px-2 py-1 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition">
-                  <span class="text-slate-400 font-medium">£</span>
-                  <input type="number" id="lump-sipp" value="15000" min="0" step="1000" class="w-20 text-right font-medium text-slate-800 focus:outline-none text-xs">
-                </div>
-              </div>
-
-              <!-- General Investment Account -->
-              <div class="flex items-center justify-between gap-2 text-xs">
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                  <input type="checkbox" id="account-gia" class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
-                  <span class="font-medium text-slate-800">General Investment Account</span>
-                </label>
-                <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-md px-2 py-1 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition">
-                  <span class="text-slate-400 font-medium">£</span>
-                  <input type="number" id="lump-gia" value="0" min="0" step="1000" class="w-20 text-right font-medium text-slate-800 focus:outline-none text-xs">
-                </div>
-              </div>
-            </div>
+          <!-- Step Navigation Tabs (2 Rows x 3 Cols Grid) -->
+          <div class="grid grid-cols-3 gap-2" id="profile-steps-tabs">
+            <button class="profile-step-tab active px-2.5 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5" data-step="step-01">
+              <i data-lucide="wallet" class="w-3.5 h-3.5 text-slate-600"></i>
+              <span>01 Accounts</span>
+            </button>
+            <button class="profile-step-tab px-2.5 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5" data-step="step-02">
+              <i data-lucide="repeat" class="w-3.5 h-3.5 text-slate-600"></i>
+              <span>02 Monthly</span>
+            </button>
+            <button class="profile-step-tab px-2.5 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5" data-step="step-03">
+              <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-slate-600"></i>
+              <span>03 Allocation</span>
+            </button>
+            <button class="profile-step-tab px-2.5 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5" data-step="step-04">
+              <i data-lucide="arrow-left-right" class="w-3.5 h-3.5 text-slate-600"></i>
+              <span>04 Trading</span>
+            </button>
+            <button class="profile-step-tab px-2.5 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5" data-step="step-05">
+              <i data-lucide="landmark" class="w-3.5 h-3.5 text-slate-600"></i>
+              <span>05 Pension</span>
+            </button>
+            <button class="profile-step-tab px-2.5 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5" data-step="step-06">
+              <i data-lucide="trending-up" class="w-3.5 h-3.5 text-slate-600"></i>
+              <span>06 Horizon</span>
+            </button>
           </div>
 
-          <!-- 02 Monthly investments -->
-          <div class="space-y-2.5 pt-3 border-t border-slate-100">
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-bold text-slate-900">02 Monthly investments</span>
-              <span id="total-monthly-display" class="font-bold text-slate-900">Total: £400 / mo</span>
+          <!-- STEP PANELS CONTAINER -->
+          <div id="step-panels-container">
+
+            <!-- STEP 01: Accounts & Lump Sum -->
+            <div id="panel-step-01" class="step-panel space-y-4">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-slate-900">Choose active accounts & initial amounts</span>
+              </div>
+
+              <div class="space-y-3">
+                <!-- Stocks & Shares ISA -->
+                <div class="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition bg-white">
+                  <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input type="checkbox" id="account-isa" checked class="w-4 h-4 text-[#0c1e35] rounded border-slate-300 focus:ring-[#e5a93c]">
+                    <span class="font-bold text-slate-800 text-sm">Stocks & Shares ISA</span>
+                  </label>
+                  <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus-within:bg-white focus-within:border-[#0c1e35] focus-within:ring-1 focus-within:ring-[#0c1e35] transition">
+                    <span class="text-slate-400 font-bold text-sm">£</span>
+                    <input type="number" id="lump-isa" value="25000" min="0" step="1000" class="w-24 text-right font-bold text-slate-900 focus:outline-none text-sm bg-transparent">
+                  </div>
+                </div>
+
+                <!-- SIPP -->
+                <div class="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition bg-white">
+                  <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input type="checkbox" id="account-sipp" checked class="w-4 h-4 text-[#0c1e35] rounded border-slate-300 focus:ring-[#e5a93c]">
+                    <span class="font-bold text-slate-800 text-sm">SIPP (Personal Pension)</span>
+                  </label>
+                  <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus-within:bg-white focus-within:border-[#0c1e35] focus-within:ring-1 focus-within:ring-[#0c1e35] transition">
+                    <span class="text-slate-400 font-bold text-sm">£</span>
+                    <input type="number" id="lump-sipp" value="15000" min="0" step="1000" class="w-24 text-right font-bold text-slate-900 focus:outline-none text-sm bg-transparent">
+                  </div>
+                </div>
+
+                <!-- General Investment Account -->
+                <div class="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition bg-white">
+                  <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input type="checkbox" id="account-gia" class="w-4 h-4 text-[#0c1e35] rounded border-slate-300 focus:ring-[#e5a93c]">
+                    <span class="font-bold text-slate-800 text-sm">General Investment Account</span>
+                  </label>
+                  <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus-within:bg-white focus-within:border-[#0c1e35] focus-within:ring-1 focus-within:ring-[#0c1e35] transition">
+                    <span class="text-slate-400 font-bold text-sm">£</span>
+                    <input type="number" id="lump-gia" value="0" min="0" step="1000" class="w-24 text-right font-bold text-slate-900 focus:outline-none text-sm bg-transparent">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Total Lump Sum Box (Warm Beige Accent) -->
+              <div class="bg-[#f5f1e8] border border-[#e8e4dc] rounded-xl p-3.5 flex items-center justify-between">
+                <span class="font-bold text-slate-800 text-xs uppercase tracking-wide">Total lump sum</span>
+                <span id="total-lump-display" class="font-serif-headline text-lg font-black text-[#0c1e35]">£40,000</span>
+              </div>
             </div>
 
-            <div class="space-y-2">
-              <!-- ISA monthly -->
-              <div class="flex items-center justify-between gap-2 text-xs">
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                  <input type="checkbox" id="monthly-check-isa" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
-                  <span class="font-medium text-slate-800">Stocks & Shares ISA</span>
+            <!-- STEP 02: Monthly Regular Investments -->
+            <div id="panel-step-02" class="step-panel hidden space-y-4">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-slate-900">Regular monthly contributions</span>
+              </div>
+
+              <div class="space-y-3">
+                <!-- ISA monthly -->
+                <div class="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition bg-white">
+                  <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input type="checkbox" id="monthly-check-isa" checked class="w-4 h-4 text-[#0c1e35] rounded border-slate-300 focus:ring-[#e5a93c]">
+                    <span class="font-bold text-slate-800 text-sm">ISA Monthly</span>
+                  </label>
+                  <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus-within:bg-white focus-within:border-[#0c1e35] focus-within:ring-1 focus-within:ring-[#0c1e35] transition">
+                    <span class="text-slate-400 font-bold text-sm">£</span>
+                    <input type="number" id="monthly-isa" value="250" min="0" step="25" class="w-20 text-right font-bold text-slate-900 focus:outline-none text-sm bg-transparent">
+                  </div>
+                </div>
+
+                <!-- SIPP monthly -->
+                <div class="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition bg-white">
+                  <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input type="checkbox" id="monthly-check-sipp" checked class="w-4 h-4 text-[#0c1e35] rounded border-slate-300 focus:ring-[#e5a93c]">
+                    <span class="font-bold text-slate-800 text-sm">SIPP Monthly</span>
+                  </label>
+                  <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus-within:bg-white focus-within:border-[#0c1e35] focus-within:ring-1 focus-within:ring-[#0c1e35] transition">
+                    <span class="text-slate-400 font-bold text-sm">£</span>
+                    <input type="number" id="monthly-sipp" value="150" min="0" step="25" class="w-20 text-right font-bold text-slate-900 focus:outline-none text-sm bg-transparent">
+                  </div>
+                </div>
+
+                <!-- GIA monthly -->
+                <div class="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition bg-white">
+                  <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input type="checkbox" id="monthly-check-gia" class="w-4 h-4 text-[#0c1e35] rounded border-slate-300 focus:ring-[#e5a93c]">
+                    <span class="font-bold text-slate-800 text-sm">GIA Monthly</span>
+                  </label>
+                  <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus-within:bg-white focus-within:border-[#0c1e35] focus-within:ring-1 focus-within:ring-[#0c1e35] transition">
+                    <span class="text-slate-400 font-bold text-sm">£</span>
+                    <input type="number" id="monthly-gia" value="0" min="0" step="25" class="w-20 text-right font-bold text-slate-900 focus:outline-none text-sm bg-transparent">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Total Monthly Box -->
+              <div class="bg-[#f5f1e8] border border-[#e8e4dc] rounded-xl p-3.5 flex items-center justify-between">
+                <span class="font-bold text-slate-800 text-xs uppercase tracking-wide">Total monthly</span>
+                <span id="total-monthly-display" class="font-serif-headline text-lg font-black text-[#0c1e35]">£400 / mo</span>
+              </div>
+            </div>
+
+            <!-- STEP 03: Investments & Allocation (with Live Doughnut Chart) -->
+            <div id="panel-step-03" class="step-panel hidden space-y-4">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-slate-900">Select asset universe & split</span>
+                <span id="alloc-sum-text" class="font-bold text-emerald-700">100%</span>
+              </div>
+
+              <!-- Colorful Chips for Asset Types -->
+              <div class="grid grid-cols-3 gap-2" id="asset-type-selectors">
+                <!-- UK Shares -->
+                <label id="pill-ukShares" class="asset-chip checked flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-bold cursor-pointer select-none">
+                  <input type="checkbox" id="chk-uk-shares" value="ukShares" checked class="w-3.5 h-3.5 text-[#0c1e35] rounded border-slate-300">
+                  <span>UK Shares</span>
                 </label>
-                <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-md px-2 py-1 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition">
-                  <span class="text-slate-400 font-medium">£</span>
-                  <input type="number" id="monthly-isa" value="250" min="0" step="25" class="w-20 text-right font-medium text-slate-800 focus:outline-none text-xs">
-                </div>
-              </div>
 
-              <!-- SIPP monthly -->
-              <div class="flex items-center justify-between gap-2 text-xs">
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                  <input type="checkbox" id="monthly-check-sipp" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
-                  <span class="font-medium text-slate-800">SIPP</span>
+                <!-- ETFs -->
+                <label id="pill-etfs" class="asset-chip checked flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-bold cursor-pointer select-none">
+                  <input type="checkbox" id="chk-etfs" value="etfs" checked class="w-3.5 h-3.5 text-[#0c1e35] rounded border-slate-300">
+                  <span>ETFs</span>
                 </label>
-                <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-md px-2 py-1 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition">
-                  <span class="text-slate-400 font-medium">£</span>
-                  <input type="number" id="monthly-sipp" value="150" min="0" step="25" class="w-20 text-right font-medium text-slate-800 focus:outline-none text-xs">
-                </div>
-              </div>
 
-              <!-- GIA monthly -->
-              <div class="flex items-center justify-between gap-2 text-xs">
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                  <input type="checkbox" id="monthly-check-gia" class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
-                  <span class="font-medium text-slate-800">General Investment Account</span>
+                <!-- Funds / OEICs -->
+                <label id="pill-funds" class="asset-chip checked flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-bold cursor-pointer select-none">
+                  <input type="checkbox" id="chk-funds" value="funds" checked class="w-3.5 h-3.5 text-[#0c1e35] rounded border-slate-300">
+                  <span>Funds / OEICs</span>
                 </label>
-                <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-md px-2 py-1 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition">
-                  <span class="text-slate-400 font-medium">£</span>
-                  <input type="number" id="monthly-gia" value="0" min="0" step="25" class="w-20 text-right font-medium text-slate-800 focus:outline-none text-xs">
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <!-- 03 Investments & allocation -->
-          <div class="space-y-3 pt-3 border-t border-slate-100">
-            <span class="font-bold text-xs text-slate-900 block">03 Investments & allocation</span>
+                <!-- Investment Trusts -->
+                <label id="pill-investmentTrusts" class="asset-chip checked flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-bold cursor-pointer select-none">
+                  <input type="checkbox" id="chk-it" value="investmentTrusts" checked class="w-3.5 h-3.5 text-[#0c1e35] rounded border-slate-300">
+                  <span>Inv. Trusts</span>
+                </label>
 
-            <!-- 6 Checkbox Pills (2 rows of 3) -->
-            <div class="grid grid-cols-3 gap-1.5" id="asset-type-selectors">
-              <!-- UK Shares -->
-              <label id="pill-ukShares" class="asset-pill checked flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md border text-xs font-semibold cursor-pointer select-none">
-                <input type="checkbox" id="chk-uk-shares" value="ukShares" checked class="w-3.5 h-3.5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
-                <span>UK Shares</span>
-              </label>
+                <!-- US Stocks -->
+                <label id="pill-usStocks" class="asset-chip checked flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-bold cursor-pointer select-none">
+                  <input type="checkbox" id="chk-us" value="usStocks" checked class="w-3.5 h-3.5 text-[#0c1e35] rounded border-slate-300">
+                  <span>US Stocks</span>
+                </label>
 
-              <!-- ETFs -->
-              <label id="pill-etfs" class="asset-pill checked flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md border text-xs font-semibold cursor-pointer select-none">
-                <input type="checkbox" id="chk-etfs" value="etfs" checked class="w-3.5 h-3.5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
-                <span>ETFs</span>
-              </label>
-
-              <!-- Funds / OEICs -->
-              <label id="pill-funds" class="asset-pill checked flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md border text-xs font-semibold cursor-pointer select-none">
-                <input type="checkbox" id="chk-funds" value="funds" checked class="w-3.5 h-3.5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
-                <span>Funds / OEICs</span>
-              </label>
-
-              <!-- Investment Trusts -->
-              <label id="pill-investmentTrusts" class="asset-pill checked flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md border text-xs font-semibold cursor-pointer select-none">
-                <input type="checkbox" id="chk-it" value="investmentTrusts" checked class="w-3.5 h-3.5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
-                <span>Inv. Trusts</span>
-              </label>
-
-              <!-- US Stocks -->
-              <label id="pill-usStocks" class="asset-pill checked flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md border text-xs font-semibold cursor-pointer select-none">
-                <input type="checkbox" id="chk-us" value="usStocks" checked class="w-3.5 h-3.5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
-                <span>US Stocks</span>
-              </label>
-
-              <!-- European Stocks -->
-              <label id="pill-europeanStocks" class="asset-pill unchecked flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md border text-xs font-semibold cursor-pointer select-none">
-                <input type="checkbox" id="chk-eu" value="europeanStocks" class="w-3.5 h-3.5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
-                <span>European Stocks</span>
-              </label>
-            </div>
-
-            <!-- Portfolio allocation header & 100% -->
-            <div class="flex items-center justify-between text-xs pt-1">
-              <span class="font-bold text-slate-800">Portfolio allocation</span>
-              <span id="alloc-sum-text" class="font-bold text-emerald-700">100%</span>
-            </div>
-
-            <!-- Active Sliders Container -->
-            <div id="active-sliders-list" class="space-y-2 text-xs">
-              <!-- UK Shares -->
-              <div id="slider-row-ukShares" class="flex items-center justify-between gap-3">
-                <span class="text-slate-700 font-medium w-28 truncate">UK Shares</span>
-                <input type="range" id="alloc-uk-shares" min="1" max="100" step="1" value="25" class="flex-1">
-                <span class="font-bold text-slate-800 w-10 text-right" id="val-uk-shares">25%</span>
-              </div>
-
-              <!-- ETFs -->
-              <div id="slider-row-etfs" class="flex items-center justify-between gap-3">
-                <span class="text-slate-700 font-medium w-28 truncate">ETFs</span>
-                <input type="range" id="alloc-etfs" min="1" max="100" step="1" value="35" class="flex-1">
-                <span class="font-bold text-slate-800 w-10 text-right" id="val-etfs">35%</span>
-              </div>
-
-              <!-- Funds / OEICs -->
-              <div id="slider-row-funds" class="flex items-center justify-between gap-3">
-                <span class="text-slate-700 font-medium w-28 truncate">Funds / OEICs</span>
-                <input type="range" id="alloc-funds" min="1" max="100" step="1" value="20" class="flex-1">
-                <span class="font-bold text-slate-800 w-10 text-right" id="val-funds">20%</span>
-              </div>
-
-              <!-- Investment Trusts -->
-              <div id="slider-row-investmentTrusts" class="flex items-center justify-between gap-3">
-                <span class="text-slate-700 font-medium w-28 truncate">Inv. Trusts</span>
-                <input type="range" id="alloc-it" min="1" max="100" step="1" value="10" class="flex-1">
-                <span class="font-bold text-slate-800 w-10 text-right" id="val-it">10%</span>
-              </div>
-
-              <!-- US Stocks -->
-              <div id="slider-row-usStocks" class="flex items-center justify-between gap-3">
-                <span class="text-slate-700 font-medium w-28 truncate">US Stocks</span>
-                <input type="range" id="alloc-us" min="1" max="100" step="1" value="10" class="flex-1">
-                <span class="font-bold text-slate-800 w-10 text-right" id="val-us">10%</span>
-              </div>
-
-              <!-- European Stocks -->
-              <div id="slider-row-europeanStocks" class="flex items-center justify-between gap-3 hidden">
-                <span class="text-slate-700 font-medium w-28 truncate">European Stocks</span>
-                <input type="range" id="alloc-eu" min="1" max="100" step="1" value="0" class="flex-1">
-                <span class="font-bold text-slate-800 w-10 text-right" id="val-eu">0%</span>
-              </div>
-            </div>
-
-            <!-- Preset Allocation Row -->
-            <div class="flex items-center justify-between gap-2 text-xs pt-1">
-              <span class="text-slate-600 font-medium">Preset allocation</span>
-              <select id="preset-alloc-select" class="text-xs bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                <option value="balanced" selected>Balanced mix</option>
-                <option value="etfs-only">100% ETFs</option>
-                <option value="funds-only">100% Funds</option>
-                <option value="shares-etfs">50/50 Shares & ETFs</option>
-                <option value="global-stocks">Global Stocks (US/UK/EU)</option>
-                <option value="custom">Custom allocation</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- 04 Trading & overseas FX (Accordion) -->
-          <details class="group pt-3 border-t border-slate-100 text-xs">
-            <summary class="flex items-center justify-between cursor-pointer py-1 font-bold text-slate-900 select-none">
-              <span>04 Trading & overseas FX</span>
-              <span class="flex items-center gap-1 font-normal text-slate-500 text-[11px]">
-                <span id="trading-summary-badge">1 UK trade / mo • 0 overseas</span>
-                <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform group-open:rotate-180 text-slate-400"></i>
-              </span>
-            </summary>
-            <div class="pt-3 pb-1 space-y-3">
-              <div class="space-y-1">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-slate-600">UK Share / ETF Trades:</span>
-                  <span id="val-trades-uk" class="font-bold text-slate-800">1 / mo</span>
-                </div>
-                <input type="range" id="trades-uk" min="0" max="20" step="1" value="1" class="w-full">
-              </div>
-
-              <div class="space-y-1">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-slate-600">Fund Buy / Sells:</span>
-                  <span id="val-trades-funds" class="font-bold text-slate-800">0 / mo</span>
-                </div>
-                <input type="range" id="trades-funds" min="0" max="15" step="1" value="0" class="w-full">
-              </div>
-
-              <div class="space-y-1">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-slate-600">US & European Trades:</span>
-                  <span id="val-trades-overseas" class="font-bold text-slate-800">0 / mo</span>
-                </div>
-                <input type="range" id="trades-overseas" min="0" max="20" step="1" value="0" class="w-full">
-              </div>
-
-              <div class="flex items-center justify-between text-xs pt-1">
-                <span class="text-slate-600">Average Trade Value:</span>
-                <div class="flex items-center gap-1 bg-white border border-slate-200 rounded px-2 py-0.5">
-                  <span class="text-slate-400 font-medium">£</span>
-                  <input type="number" id="trade-size-overseas" value="1000" min="100" step="250" class="w-16 text-right font-medium text-slate-800 focus:outline-none">
-                </div>
-              </div>
-            </div>
-          </details>
-
-          <!-- 05 Pension rules (Accordion) -->
-          <details class="group pt-3 border-t border-slate-100 text-xs">
-            <summary class="flex items-center justify-between cursor-pointer py-1 font-bold text-slate-900 select-none">
-              <span>05 Pension rules</span>
-              <span class="flex items-center gap-1 font-normal text-slate-500 text-[11px]">
-                <span id="pension-summary-badge">No employer contributions • Accumulation</span>
-                <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform group-open:rotate-180 text-slate-400"></i>
-              </span>
-            </summary>
-            <div class="pt-3 pb-1 space-y-3">
-              <div class="flex items-center justify-between">
-                <div>
-                  <span class="font-semibold text-slate-800 block">Employer Contributions</span>
-                  <span class="text-[10px] text-slate-500">Will your Ltd Company or employer contribute?</span>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" id="sipp-employer-contrib" class="sr-only peer">
-                  <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                <!-- European Stocks -->
+                <label id="pill-europeanStocks" class="asset-chip unchecked flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-bold cursor-pointer select-none">
+                  <input type="checkbox" id="chk-eu" value="europeanStocks" class="w-3.5 h-3.5 text-[#0c1e35] rounded border-slate-300">
+                  <span>European</span>
                 </label>
               </div>
 
-              <div id="employer-contrib-warning" class="hidden text-[11px] text-amber-900 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
-                ⚠️ <strong>Key Incompatibility Alert:</strong> Vanguard UK SIPP and Trading 212 SIPP currently <u>do not accept employer contributions</u>. Enabling this will disqualify them from your recommendations.
+              <!-- Sliders List -->
+              <div id="active-sliders-list" class="space-y-2.5 text-xs pt-1">
+                <div id="slider-row-ukShares" class="flex items-center justify-between gap-3">
+                  <span class="text-slate-800 font-semibold w-24 truncate">UK Shares</span>
+                  <input type="range" id="alloc-uk-shares" min="1" max="100" step="1" value="25" class="flex-1">
+                  <span class="font-bold text-slate-900 w-10 text-right" id="val-uk-shares">25%</span>
+                </div>
+
+                <div id="slider-row-etfs" class="flex items-center justify-between gap-3">
+                  <span class="text-slate-800 font-semibold w-24 truncate">ETFs</span>
+                  <input type="range" id="alloc-etfs" min="1" max="100" step="1" value="35" class="flex-1">
+                  <span class="font-bold text-slate-900 w-10 text-right" id="val-etfs">35%</span>
+                </div>
+
+                <div id="slider-row-funds" class="flex items-center justify-between gap-3">
+                  <span class="text-slate-800 font-semibold w-24 truncate">Funds / OEICs</span>
+                  <input type="range" id="alloc-funds" min="1" max="100" step="1" value="20" class="flex-1">
+                  <span class="font-bold text-slate-900 w-10 text-right" id="val-funds">20%</span>
+                </div>
+
+                <div id="slider-row-investmentTrusts" class="flex items-center justify-between gap-3">
+                  <span class="text-slate-800 font-semibold w-24 truncate">Inv. Trusts</span>
+                  <input type="range" id="alloc-it" min="1" max="100" step="1" value="10" class="flex-1">
+                  <span class="font-bold text-slate-900 w-10 text-right" id="val-it">10%</span>
+                </div>
+
+                <div id="slider-row-usStocks" class="flex items-center justify-between gap-3">
+                  <span class="text-slate-800 font-semibold w-24 truncate">US Stocks</span>
+                  <input type="range" id="alloc-us" min="1" max="100" step="1" value="10" class="flex-1">
+                  <span class="font-bold text-slate-900 w-10 text-right" id="val-us">10%</span>
+                </div>
+
+                <div id="slider-row-europeanStocks" class="flex items-center justify-between gap-3 hidden">
+                  <span class="text-slate-800 font-semibold w-24 truncate">European</span>
+                  <input type="range" id="alloc-eu" min="1" max="100" step="1" value="0" class="flex-1">
+                  <span class="font-bold text-slate-900 w-10 text-right" id="val-eu">0%</span>
+                </div>
               </div>
 
-              <div class="space-y-1">
-                <span class="text-slate-600 block">Pension Withdrawal Mode:</span>
-                <select id="pension-withdrawal" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-md p-2 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                  <option value="accumulation" selected>Accumulation Phase (Growth / Not withdrawing yet)</option>
-                  <option value="flexible_drawdown">Flexible Drawdown (Regular income)</option>
-                  <option value="lump_sum">Uncrystallised Lump Sums (UFPLS)</option>
-                  <option value="annuity">Purchasing an Annuity</option>
+              <!-- Interactive Doughnut Chart & Color Legend -->
+              <div class="bg-[#fcfaf7] border border-[#e8e4dc] rounded-2xl p-4 flex items-center gap-4">
+                <div class="w-28 h-28 shrink-0 relative flex items-center justify-center">
+                  <canvas id="chart-allocation-doughnut" width="112" height="112"></canvas>
+                </div>
+                <div id="doughnut-legend" class="flex-1 text-xs space-y-1.5 font-medium text-slate-700">
+                  <!-- Injected dynamically via app.js -->
+                </div>
+              </div>
+
+              <!-- Preset Allocation Select -->
+              <div class="flex items-center justify-between gap-2 text-xs pt-1">
+                <span class="text-slate-600 font-semibold">Preset allocation:</span>
+                <select id="preset-alloc-select" class="text-xs bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-800 font-bold focus:outline-none focus:ring-1 focus:ring-[#0c1e35]">
+                  <option value="balanced" selected>Balanced mix</option>
+                  <option value="etfs-only">100% ETFs</option>
+                  <option value="funds-only">100% Funds</option>
+                  <option value="shares-etfs">50/50 Shares & ETFs</option>
+                  <option value="global-stocks">Global Stocks (US/UK/EU)</option>
+                  <option value="custom">Custom allocation</option>
                 </select>
               </div>
             </div>
-          </details>
 
-          <!-- 06 Horizon & return (Accordion) -->
-          <details class="group pt-3 border-t border-slate-100 text-xs">
-            <summary class="flex items-center justify-between cursor-pointer py-1 font-bold text-slate-900 select-none">
-              <span>06 Horizon & return</span>
-              <span class="flex items-center gap-1 font-normal text-slate-500 text-[11px]">
-                <span id="horizon-summary-badge">10 years • 6.0% annual return</span>
-                <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform group-open:rotate-180 text-slate-400"></i>
-              </span>
-            </summary>
-            <div class="pt-3 pb-1 space-y-3">
-              <div class="space-y-1">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-slate-600">Investing Horizon:</span>
-                  <span id="val-horizon-display" class="font-bold text-slate-800">10 yrs</span>
-                </div>
-                <input type="range" id="horizon-years" min="1" max="25" step="1" value="10" class="w-full">
+            <!-- STEP 04: Trading & Overseas FX -->
+            <div id="panel-step-04" class="step-panel hidden space-y-4">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-slate-900">Trading frequencies & currency conversions</span>
+                <span id="trading-summary-badge" class="text-slate-500 font-medium">1 UK / mo • 0 overseas</span>
               </div>
 
-              <div class="space-y-1">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-slate-600">Assumed Annual Return:</span>
-                  <span id="val-return-display" class="font-bold text-slate-800">6.0%</span>
+              <div class="space-y-3.5 text-xs">
+                <div class="space-y-1.5 p-3 rounded-xl bg-slate-50/70 border border-slate-200">
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-700 font-semibold">UK Share & ETF Trades:</span>
+                    <span id="val-trades-uk" class="font-bold text-slate-900">1 / mo</span>
+                  </div>
+                  <input type="range" id="trades-uk" min="0" max="20" step="1" value="1" class="w-full">
                 </div>
-                <input type="range" id="expected-return" min="2" max="10" step="0.5" value="6" class="w-full">
+
+                <div class="space-y-1.5 p-3 rounded-xl bg-slate-50/70 border border-slate-200">
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-700 font-semibold">Fund Buy / Sells (OEICs):</span>
+                    <span id="val-trades-funds" class="font-bold text-slate-900">0 / mo</span>
+                  </div>
+                  <input type="range" id="trades-funds" min="0" max="15" step="1" value="0" class="w-full">
+                </div>
+
+                <div class="space-y-1.5 p-3 rounded-xl bg-slate-50/70 border border-slate-200">
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-700 font-semibold">US & European Trades:</span>
+                    <span id="val-trades-overseas" class="font-bold text-slate-900">0 / mo</span>
+                  </div>
+                  <input type="range" id="trades-overseas" min="0" max="20" step="1" value="0" class="w-full">
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50/70 border border-slate-200">
+                  <div>
+                    <span class="text-slate-800 font-bold block">Average Overseas Trade Size</span>
+                    <span class="text-[11px] text-slate-500">For foreign exchange rate calculation</span>
+                  </div>
+                  <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1">
+                    <span class="text-slate-400 font-bold">£</span>
+                    <input type="number" id="trade-size-overseas" value="1000" min="100" step="250" class="w-20 text-right font-bold text-slate-900 focus:outline-none">
+                  </div>
+                </div>
               </div>
             </div>
-          </details>
+
+            <!-- STEP 05: Pension Rules -->
+            <div id="panel-step-05" class="step-panel hidden space-y-4">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-slate-900">SIPP regulations & withdrawal phase</span>
+              </div>
+
+              <div class="space-y-3.5 text-xs">
+                <!-- Employer Contributions Toggle -->
+                <div class="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-white">
+                  <div>
+                    <span class="font-bold text-slate-900 block text-sm">Employer Contributions</span>
+                    <span class="text-slate-500 text-[11px]">Will your Limited Company contribute directly?</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="sipp-employer-contrib" class="sr-only peer">
+                    <div class="w-10 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0c1e35]"></div>
+                  </label>
+                </div>
+
+                <!-- Alert Box for Employer SIPP Incompatibility -->
+                <div id="employer-contrib-warning" class="hidden text-xs text-amber-900 bg-amber-50 p-3 rounded-xl border border-amber-200 space-y-1">
+                  <div class="font-bold flex items-center gap-1.5">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600"></i>
+                    <span>Provider Incompatibility Alert</span>
+                  </div>
+                  <p class="text-[11px] leading-relaxed">
+                    <strong>Vanguard UK Investor</strong> and <strong>Trading 212</strong> do NOT accept employer or Limited Company pension contributions. Enabling this will disqualify them from recommendations.
+                  </p>
+                </div>
+
+                <!-- Pension Withdrawal Mode -->
+                <div class="space-y-1.5 p-3.5 rounded-xl border border-slate-200 bg-white">
+                  <span class="text-slate-800 font-bold block">Pension Lifecycle Phase:</span>
+                  <select id="pension-withdrawal" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 font-semibold focus:outline-none focus:ring-1 focus:ring-[#0c1e35]">
+                    <option value="accumulation" selected>Accumulation Phase (Growing wealth / Not withdrawing)</option>
+                    <option value="flexible_drawdown">Flexible Drawdown (Regular retirement income)</option>
+                    <option value="lump_sum">Uncrystallised Lump Sums (UFPLS)</option>
+                    <option value="annuity">Purchasing an Annuity</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 06: Horizon & Return -->
+            <div id="panel-step-06" class="step-panel hidden space-y-4">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-slate-900">Compound growth assumptions</span>
+                <span id="horizon-summary-badge" class="text-slate-500 font-medium">10 yrs • 6.0% return</span>
+              </div>
+
+              <div class="space-y-3.5 text-xs">
+                <div class="space-y-1.5 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200">
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-800 font-bold">Investment Horizon:</span>
+                    <span id="val-horizon-display" class="font-bold text-slate-900 text-sm">10 yrs</span>
+                  </div>
+                  <input type="range" id="horizon-years" min="1" max="25" step="1" value="10" class="w-full">
+                </div>
+
+                <div class="space-y-1.5 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200">
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-800 font-bold">Assumed Annual Return:</span>
+                    <span id="val-return-display" class="font-bold text-slate-900 text-sm">6.0%</span>
+                  </div>
+                  <input type="range" id="expected-return" min="2" max="10" step="0.5" value="6" class="w-full">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Step Flow Buttons (Prev / Next) -->
+          <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
+            <button id="btn-step-prev" class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-bold transition flex items-center gap-1 disabled:opacity-40">
+              <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+              <span>Previous</span>
+            </button>
+            <span class="text-[11px] text-slate-400 font-medium" id="step-indicator-text">Step 1 of 6</span>
+            <button id="btn-step-next" class="px-3.5 py-1.5 rounded-lg bg-[#0c1e35] hover:bg-[#071324] text-white font-bold transition flex items-center gap-1">
+              <span>Next</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
 
         </div>
 
-        <!-- Note below profile card -->
-        <p class="text-[11px] text-slate-400 pl-1">Platform eligibility follows your selections</p>
+        <p class="text-[11px] text-slate-500 pl-1 font-medium">
+          Platform rankings automatically re-evaluate in real time with every change.
+        </p>
       </section>
 
-      <!-- RIGHT COLUMN: Tabs, Rankings & Comparison (7 cols) -->
-      <section class="lg:col-span-7 space-y-4">
+      <!-- RIGHT COLUMN: WINNER, RUNNERS-UP, CHARTS & MATRIX (7 cols) -->
+      <section class="lg:col-span-7 space-y-6">
 
-        <!-- Navigation Tabs Bar -->
-        <div class="flex border-b border-slate-200 space-x-6 text-xs font-semibold overflow-x-auto pb-px">
-          <button class="nav-tab active-tab pb-2 text-slate-900 border-b-2 border-emerald-600 flex items-center gap-1.5 whitespace-nowrap" data-tab="tab-leaderboard">
-            <span>Platform rankings</span>
-          </button>
-          <button class="nav-tab pb-2 text-slate-500 hover:text-slate-800 flex items-center gap-1.5 whitespace-nowrap" data-tab="tab-fee-breakdown">
-            <span>Fee breakdown</span>
-          </button>
-          <button class="nav-tab pb-2 text-slate-500 hover:text-slate-800 flex items-center gap-1.5 whitespace-nowrap" data-tab="tab-charts">
-            <span>Compounding & crossover</span>
-          </button>
-          <button class="nav-tab pb-2 text-slate-500 hover:text-slate-800 flex items-center gap-1.5 whitespace-nowrap" data-tab="tab-matrix">
-            <span>Feature matrix</span>
-          </button>
+        <!-- Results Header Controls (Eligible count, Excluded link, Monthly/Annual switch) -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-[#e8e4dc] shadow-2xs">
+          <div class="flex items-center gap-3 text-xs">
+            <span id="status-eligible-count" class="font-extrabold text-slate-900 flex items-center gap-1.5">
+              <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+              <span>5 eligible platforms</span>
+            </span>
+            <button id="btn-view-reasons-link" class="text-slate-500 hover:text-slate-900 font-medium transition">
+              <span id="status-excluded-text">2 excluded</span> • <span class="underline">View reasons</span>
+            </button>
+          </div>
+
+          <!-- Cost Toggle: Monthly / Annual -->
+          <div class="inline-flex rounded-xl border border-slate-200 bg-[#f1ede4] p-1 text-xs font-bold">
+            <button id="toggle-view-monthly" class="segmented-btn active px-3.5 py-1 rounded-lg">
+              Monthly
+            </button>
+            <button id="toggle-view-annual" class="segmented-btn px-3.5 py-1 rounded-lg">
+              Annual
+            </button>
+          </div>
         </div>
 
-        <!-- TAB 1: PLATFORM RANKINGS -->
-        <div id="tab-leaderboard" class="tab-content space-y-3">
+        <!-- #1 WINNER CARD CONTAINER (Gold Border & Raised Glow) -->
+        <div id="winner-card-container">
+          <!-- Injected dynamically via app.js -->
+        </div>
 
-          <!-- Status Sub-bar (Eligible count, Excluded link, Monthly/Annual toggle) -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs pt-1">
-            <div class="flex items-center gap-3">
-              <span id="status-eligible-count" class="font-bold text-slate-800 flex items-center gap-1.5">
-                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
-                <span>4 eligible platforms</span>
-              </span>
-              <button id="btn-view-reasons-link" class="text-slate-500 hover:text-slate-800 text-xs transition">
-                <span id="status-excluded-text">2 excluded</span> • <span class="underline">View reasons</span>
-              </button>
-            </div>
-
-            <!-- Segmented Monthly / Annual Toggle -->
-            <div class="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-xs font-semibold shadow-2xs">
-              <button id="toggle-view-monthly" class="segmented-btn active px-3 py-1 rounded-md text-xs">
-                Monthly
-              </button>
-              <button id="toggle-view-annual" class="segmented-btn px-3 py-1 rounded-md text-xs">
-                Annual
-              </button>
-            </div>
+        <!-- RUNNERS-UP PLATFORMS (Grid of 2 Columns) -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between px-1">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Runners-up comparison</span>
+            <span class="text-[11px] text-slate-400 font-medium">Relative cost gap</span>
           </div>
-
-          <!-- Highlight Banner: Lowest estimated cost -->
-          <div id="lowest-cost-banner" class="bg-[#ecfdf5] border border-[#bbf7d0] rounded-xl p-3 flex items-start gap-3">
-            <div class="p-1 text-emerald-600 shrink-0 mt-0.5">
-              <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
-            </div>
-            <div class="text-xs">
-              <span class="font-bold text-slate-900 block" id="banner-lowest-title">Lowest estimated cost: AJ Bell</span>
-              <span class="text-slate-600" id="banner-lowest-desc">£121.60 / year less than the highest-cost eligible platform (312.60 minus 191.00).</span>
-            </div>
-          </div>
-
-          <!-- Platform Cards Container -->
-          <div id="platform-cards-container" class="space-y-3">
+          <div id="runners-up-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Dynamic cards injected via app.js -->
           </div>
+        </div>
 
-          <!-- Excluded Platforms Banner (Amber Box) -->
-          <div id="excluded-platforms-banner" class="bg-[#fffbeb] border border-[#fde68a] rounded-xl p-3.5 flex items-center justify-between gap-3 text-xs">
-            <div class="flex items-center gap-2.5">
-              <div class="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-xs shrink-0">
-                !
+        <!-- ANNUAL FEE DECOMPOSITION STACKED BAR CHART -->
+        <div class="bg-white rounded-2xl border border-[#e8e4dc] p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="bar-chart-3" class="w-5 h-5 text-[#0c1e35]"></i>
+                <h3 class="font-serif-headline text-lg font-bold text-slate-900">Annual fee decomposition</h3>
               </div>
-              <div>
-                <span class="font-bold text-slate-900 block" id="excluded-banner-title">2 platforms excluded</span>
-                <span class="text-slate-600 text-[11px]" id="excluded-banner-list">Trading 212 • Vanguard UK Investor</span>
+              <p class="text-xs text-slate-500 mt-0.5">What makes up year 1's cost — platform custody, dealing, regular investing and FX.</p>
+            </div>
+            <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
+              Year 1
+            </span>
+          </div>
+
+          <div class="h-64 sm:h-72 w-full">
+            <canvas id="chart-annual-fee-decomposition"></canvas>
+          </div>
+
+          <!-- Chart Legend -->
+          <div class="flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-slate-700 pt-2 border-t border-slate-100">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#0c1e35]"></span> Custody</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#d4952b]"></span> Dealing</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#0d9488]"></span> Regular inv.</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#e11d48]"></span> FX</span>
+          </div>
+        </div>
+
+        <!-- CUMULATIVE FEE DRAG LINE CHART -->
+        <div class="bg-white rounded-2xl border border-[#e8e4dc] p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="trending-up" class="w-5 h-5 text-[#0c1e35]"></i>
+                <h3 class="font-serif-headline text-lg font-bold text-slate-900">Cumulative fee drag</h3>
               </div>
+              <p class="text-xs text-slate-500 mt-0.5" id="drag-chart-subtitle">
+                How fees stack up over your 10-year horizon at a 6.0% assumed return.
+              </p>
             </div>
-            <button id="btn-view-reasons-card" class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold px-3 py-1.5 rounded-lg text-xs shrink-0 flex items-center gap-1 transition shadow-2xs">
-              <span>View eligibility reasons</span>
-              <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
-            </button>
           </div>
 
-          <!-- Trade-offs Footer Row -->
-          <div class="pt-3 border-t border-slate-200 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
-            <span class="font-bold text-slate-900">Understand the trade-offs</span>
-            <span class="text-slate-300 hidden sm:inline">|</span>
-            <button class="tradeoff-link text-slate-700 hover:text-emerald-700 flex items-center gap-1 transition" data-tradeoff="flat-vs-pct">
-              <span>Flat fees vs percentage fees</span>
-              <i data-lucide="arrow-up-right" class="w-3 h-3 text-slate-400"></i>
-            </button>
-            <span class="text-slate-300 hidden sm:inline">|</span>
-            <button class="tradeoff-link text-slate-700 hover:text-emerald-700 flex items-center gap-1 transition" data-tradeoff="sipp-contrib">
-              <span>Employer SIPP contributions</span>
-              <i data-lucide="arrow-up-right" class="w-3 h-3 text-slate-400"></i>
-            </button>
-            <span class="text-slate-300 hidden sm:inline">|</span>
-            <button class="tradeoff-link text-slate-700 hover:text-emerald-700 flex items-center gap-1 transition" data-tradeoff="fx-drag">
-              <span>Overseas trading & FX</span>
-              <i data-lucide="arrow-up-right" class="w-3 h-3 text-slate-400"></i>
-            </button>
+          <div class="h-64 sm:h-72 w-full">
+            <canvas id="chart-compounding-drag"></canvas>
           </div>
-
-          <p class="text-[11px] text-slate-400 text-right pt-0.5">
-            Estimates, not personal financial advice. Check current provider fees and terms.
-          </p>
-
         </div>
 
-        <!-- TAB 2: DETAILED FEE BREAKDOWN TABLE -->
-        <div id="tab-fee-breakdown" class="tab-content hidden space-y-4">
-          <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
-            <div class="p-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
-              <div>
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Annual Fee Decomposition (£/year)</h3>
-                <p class="text-[11px] text-slate-500">Decomposition of Platform Custody, Dealing Commissions, Regular Investing, and FX Fees</p>
+        <!-- WHY PLATFORMS ARE EXCLUDED CARD (Soft Tinted Peach/Rose) -->
+        <div id="excluded-platforms-card" class="bg-[#fef2f2] border border-[#fecaca] rounded-2xl p-5 space-y-3">
+          <div class="flex items-center gap-2 text-rose-800">
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-600"></i>
+            <h4 class="font-serif-headline text-base font-bold text-rose-900" id="excluded-card-title">
+              Why 2 platforms are excluded
+            </h4>
+          </div>
+
+          <div id="excluded-platforms-list" class="space-y-2 text-xs">
+            <!-- Dynamic excluded items with red badges injected via app.js -->
+          </div>
+        </div>
+
+        <!-- PLATFORM RULES MATRIX CARD -->
+        <div class="bg-white rounded-2xl border border-[#e8e4dc] p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="shield-check" class="w-5 h-5 text-[#0c1e35]"></i>
+                <h3 class="font-serif-headline text-lg font-bold text-slate-900">Platform rules matrix</h3>
               </div>
-              <span class="text-xs font-semibold text-slate-500">Year 1 Simulation</span>
+              <p class="text-xs text-slate-500 mt-0.5">Key structural differences between UK investment brokers.</p>
             </div>
-            
-            <div class="overflow-x-auto">
-              <table class="w-full text-xs text-left">
-                <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 uppercase text-[10px] tracking-wider">
-                  <tr>
-                    <th class="py-2.5 px-3">Platform</th>
-                    <th class="py-2.5 px-3 text-right">ISA Custody</th>
-                    <th class="py-2.5 px-3 text-right">SIPP Custody</th>
-                    <th class="py-2.5 px-3 text-right">Dealing Fees</th>
-                    <th class="py-2.5 px-3 text-right">Regular Inv.</th>
-                    <th class="py-2.5 px-3 text-right">FX Fees</th>
-                    <th class="py-2.5 px-3 text-right bg-emerald-50 text-emerald-900">Total Year 1</th>
-                    <th class="py-2.5 px-3 text-right">5-Yr Total</th>
-                  </tr>
-                </thead>
-                <tbody id="table-breakdown-body" class="divide-y divide-slate-100 font-medium">
-                  <!-- Injected via app.js -->
-                </tbody>
-              </table>
-            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 uppercase text-[10px] tracking-wider">
+                <tr>
+                  <th class="py-2.5 px-3">Feature</th>
+                  <th class="py-2.5 px-2">AJ Bell</th>
+                  <th class="py-2.5 px-2">ii</th>
+                  <th class="py-2.5 px-2">HL</th>
+                  <th class="py-2.5 px-2">Trading 212</th>
+                  <th class="py-2.5 px-2">Fidelity</th>
+                  <th class="py-2.5 px-2">Vanguard</th>
+                  <th class="py-2.5 px-2">IG</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr>
+                  <td class="py-2.5 px-3 font-bold text-slate-800">Custody fee model</td>
+                  <td class="py-2.5 px-2">0.25% (shares capped)</td>
+                  <td class="py-2.5 px-2">Flat subscription</td>
+                  <td class="py-2.5 px-2">0.45% (shares capped)</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-bold">£0 (Free)</td>
+                  <td class="py-2.5 px-2">0.35% tiered</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-semibold">0.15% (capped £375)</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-bold">£0 ISA/GIA (£210 SIPP)</td>
+                </tr>
+                <tr class="bg-slate-50/50">
+                  <td class="py-2.5 px-3 font-bold text-slate-800">UK equities (shares)</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-bold">✅</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-bold">✅</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-bold">✅</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-bold">✅</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-bold">✅</td>
+                  <td class="py-2.5 px-2 text-rose-600 font-bold">❌</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-bold">✅</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 px-3 font-bold text-slate-800">Mutual funds / OEICs</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-bold">✅</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-bold">✅</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-bold">✅</td>
+                  <td class="py-2.5 px-2 text-rose-600 font-bold">❌</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-bold">✅</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-bold">✅ (Vanguard)</td>
+                  <td class="py-2.5 px-2 text-rose-600 font-bold">❌</td>
+                </tr>
+                <tr class="bg-slate-50/50">
+                  <td class="py-2.5 px-3 font-bold text-slate-800">Employer SIPP contrib.</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-semibold">✅ Full support</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-semibold">✅ Full support</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-semibold">✅ Full support</td>
+                  <td class="py-2.5 px-2 text-rose-600 font-bold">❌ Not accepted</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-semibold">✅ Full support</td>
+                  <td class="py-2.5 px-2 text-rose-600 font-bold">❌ Not accepted</td>
+                  <td class="py-2.5 px-2 text-emerald-700 font-semibold">✅ Full support</td>
+                </tr>
+                <tr class="bg-[#fcfaf7] font-bold border-t-2 border-slate-200" id="matrix-row-total-cost">
+                  <td class="py-2.5 px-3 text-[#0c1e35]">Total cost at this profile</td>
+                  <td class="py-2.5 px-2" id="matrix-cost-aj-bell">—</td>
+                  <td class="py-2.5 px-2" id="matrix-cost-ii">—</td>
+                  <td class="py-2.5 px-2" id="matrix-cost-hl">—</td>
+                  <td class="py-2.5 px-2" id="matrix-cost-t212">—</td>
+                  <td class="py-2.5 px-2" id="matrix-cost-fidelity">—</td>
+                  <td class="py-2.5 px-2" id="matrix-cost-vanguard">—</td>
+                  <td class="py-2.5 px-2" id="matrix-cost-ig">—</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <!-- TAB 3: COMPOUNDING DRAG & CROSSOVER CHARTS -->
-        <div id="tab-charts" class="tab-content hidden space-y-4">
-          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-              <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Cumulative Fee Drag Projection</h3>
-              <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                Projected at chosen rate
-              </span>
-            </div>
-            <div class="h-64 sm:h-72 w-full">
-              <canvas id="chart-compounding-drag"></canvas>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-              <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Fee Crossover Analysis (£5k to £500k)</h3>
-            </div>
-            <div class="h-64 sm:h-72 w-full">
-              <canvas id="chart-crossover"></canvas>
-            </div>
-          </div>
+        <!-- Understand the Trade-offs Links Row -->
+        <div class="pt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
+          <span class="font-bold text-slate-900">Understand key trade-offs:</span>
+          <span class="text-slate-300 hidden sm:inline">|</span>
+          <button class="tradeoff-link text-slate-700 hover:text-[#b87c1c] font-semibold flex items-center gap-1 transition" data-tradeoff="flat-vs-pct">
+            <span>Flat fees vs percentage fees</span>
+            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-400"></i>
+          </button>
+          <span class="text-slate-300 hidden sm:inline">|</span>
+          <button class="tradeoff-link text-slate-700 hover:text-[#b87c1c] font-semibold flex items-center gap-1 transition" data-tradeoff="sipp-contrib">
+            <span>Employer SIPP contributions</span>
+            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-400"></i>
+          </button>
+          <span class="text-slate-300 hidden sm:inline">|</span>
+          <button class="tradeoff-link text-slate-700 hover:text-[#b87c1c] font-semibold flex items-center gap-1 transition" data-tradeoff="fx-drag">
+            <span>Overseas trading & FX</span>
+            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-400"></i>
+          </button>
         </div>
 
-        <!-- TAB 4: FEATURE MATRIX & SIPP RULES -->
-        <div id="tab-matrix" class="tab-content hidden space-y-4">
-          <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
-            <div class="p-4 bg-slate-50/70 border-b border-slate-200">
-              <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Side-by-Side Platform Rules Matrix</h3>
-              <p class="text-[11px] text-slate-500">Key structural differences between UK investment brokers</p>
-            </div>
-
-            <div class="overflow-x-auto">
-              <table class="w-full text-xs text-left">
-                <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 uppercase text-[10px] tracking-wider">
-                  <tr>
-                    <th class="py-2.5 px-3">Feature</th>
-                    <th class="py-2.5 px-2">AJ Bell</th>
-                    <th class="py-2.5 px-2">ii</th>
-                    <th class="py-2.5 px-2">HL</th>
-                    <th class="py-2.5 px-2">Trading 212</th>
-                    <th class="py-2.5 px-2">Fidelity</th>
-                    <th class="py-2.5 px-2">Vanguard</th>
-                    <th class="py-2.5 px-2">IG</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                  <tr>
-                    <td class="py-2 px-3 font-semibold text-slate-700">Custody Fee Model</td>
-                    <td class="py-2 px-2">0.25% (shares capped)</td>
-                    <td class="py-2 px-2">Flat subscription</td>
-                    <td class="py-2 px-2">0.45% (shares capped)</td>
-                    <td class="py-2 px-2 text-emerald-600 font-bold">£0 (Free)</td>
-                    <td class="py-2 px-2">0.35% tiered</td>
-                    <td class="py-2 px-2 text-emerald-600 font-semibold">0.15% (capped £375)</td>
-                    <td class="py-2 px-2 text-emerald-600 font-bold">£0 ISA/GIA (£210 SIPP)</td>
-                  </tr>
-                  <tr class="bg-slate-50/50">
-                    <td class="py-2 px-3 font-semibold text-slate-700">UK Equities (Shares)</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Permitted</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Permitted</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Permitted</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Permitted</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Permitted</td>
-                    <td class="py-2 px-2 text-red-600 font-bold">❌ Not Permitted</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Permitted</td>
-                  </tr>
-                  <tr>
-                    <td class="py-2 px-3 font-semibold text-slate-700">Mutual Funds / OEICs</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Permitted</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Permitted</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Permitted</td>
-                    <td class="py-2 px-2 text-red-600 font-bold">❌ Not Permitted</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Permitted</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Vanguard only</td>
-                    <td class="py-2 px-2 text-red-600 font-bold">❌ Not Permitted</td>
-                  </tr>
-                  <tr class="bg-slate-50/50">
-                    <td class="py-2 px-3 font-semibold text-slate-700">Employer SIPP Contrib.</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Full Support</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Full Support</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Full Support</td>
-                    <td class="py-2 px-2 text-red-600 font-bold">❌ Not Accepted</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Full Support</td>
-                    <td class="py-2 px-2 text-red-600 font-bold">❌ Not Accepted</td>
-                    <td class="py-2 px-2 text-emerald-600">✅ Full Support</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <p class="text-[11px] text-slate-500 text-right pt-1">
+          Independent guidance and calculations based on published UK platform fee schedules. Not personal financial advice.
+        </p>
 
       </section>
 
@@ -677,14 +782,14 @@
   </main>
 
   <!-- Modal: View Eligibility Reasons -->
-  <div id="modal-eligibility-reasons" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+  <div id="modal-eligibility-reasons" class="fixed inset-0 z-50 bg-slate-950/60 modal-backdrop-blur hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl border border-slate-200 max-w-lg w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div class="flex items-center gap-2">
-          <div class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-xs">
+          <div class="w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-xs">
             !
           </div>
-          <h3 class="text-sm font-bold text-slate-900">Why Are These Platforms Excluded?</h3>
+          <h3 class="font-serif-headline text-base font-bold text-slate-900">Why Are These Platforms Excluded?</h3>
         </div>
         <button id="btn-close-reasons-modal" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
           <i data-lucide="x" class="w-5 h-5"></i>
@@ -700,7 +805,7 @@
       </div>
 
       <div class="pt-2 text-right">
-        <button id="btn-close-reasons-modal-bottom" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition">
+        <button id="btn-close-reasons-modal-bottom" class="px-5 py-2 bg-[#0c1e35] hover:bg-[#071324] text-white rounded-xl text-xs font-bold transition">
           Got it
         </button>
       </div>
@@ -708,10 +813,10 @@
   </div>
 
   <!-- Modal: Understand Trade-offs -->
-  <div id="modal-trade-offs" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+  <div id="modal-trade-offs" class="fixed inset-0 z-50 bg-slate-950/60 modal-backdrop-blur hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl border border-slate-200 max-w-xl w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 id="modal-tradeoff-title" class="text-sm font-bold text-slate-900">Platform Trade-off Insights</h3>
+        <h3 id="modal-tradeoff-title" class="font-serif-headline text-base font-bold text-slate-900">Platform Trade-off Insights</h3>
         <button id="btn-close-tradeoff-modal" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
@@ -720,7 +825,7 @@
         <!-- Injected via app.js -->
       </div>
       <div class="pt-2 text-right">
-        <button id="btn-close-tradeoff-modal-bottom" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition">
+        <button id="btn-close-tradeoff-modal-bottom" class="px-5 py-2 bg-[#0c1e35] hover:bg-[#071324] text-white rounded-xl text-xs font-bold transition">
           Close
         </button>
       </div>
